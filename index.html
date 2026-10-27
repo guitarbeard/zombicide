@@ -77,7 +77,13 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px s
 .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 0.9rem; font-weight: 500; color: var(--fg); }
 .check input { width: 18px; height: 18px; accent-color: var(--c); }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.card-btn {
+  margin-left: auto; font: 600 0.8rem var(--font-body); color: var(--c); background: none;
+  border: 1px solid var(--c); border-radius: 999px; padding: 2px 10px; cursor: pointer;
+}
+.card-btn:hover { background: var(--c-soft); }
+img.card { display: block; width: auto; max-width: 100%; height: auto; max-height: 360px; border-radius: 10px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.25); justify-self: center; }
 .chip {
   font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em; padding: 2px 9px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: help;
@@ -220,6 +226,7 @@ function applyPreset(w, pr, mode) {
   w.preset = pr.name;
   if (!m.dual) w.dualOn = false;
 }
+const cardSlug = name => name.toLowerCase().replace(/'/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const KIND_NAMES = { M: "Melee", R: "Ranged", C: "Car" };
 const TRAIT_KEYS = ["kind", "noisy", "door", "ammo", "dual", "sniper", "reload", "range"];
 const TRAIT_HELP = {
@@ -296,7 +303,8 @@ function renderWeapon(side) {
       <div><div class="tag">Weapon ${side.toUpperCase()}</div><div class="name">${w.preset === "Custom" ? "Custom dice" : w.preset}</div></div>
       <div class="stats">${w.range ? "Range " + w.range + " · " : ""}Dmg ${w.dmg}</div>
     </div>
-    <div class="chips">${chips(w)}</div>
+    <div class="chips">${chips(w)}${preset ? `<button type="button" class="card-btn" id="${side}-card" aria-expanded="${!!state.showCards}">${state.showCards ? "Hide card" : "Show card"}</button>` : ""}</div>
+    ${preset && state.showCards ? `<img class="card" src="cards/${cardSlug(preset.name)}.webp" alt="${preset.name} card" width="${preset.group === "Cars" ? 156 : 234}" height="${preset.group === "Cars" ? 240 : 360}">` : ""}
     ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
       `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
     <label for="${side}-preset">Weapon
@@ -356,6 +364,7 @@ function renderWeapon(side) {
   el.querySelector(`#${side}-plenty`).addEventListener("change", e => {
     const v = parseInt(e.target.value, 10); w.plenty = clamp(isNaN(v) ? w.plenty : v, 0, 6); update(`${side}-plenty`);
   });
+  el.querySelector(`#${side}-card`)?.addEventListener("click", () => { state.showCards = !state.showCards; update(`${side}-card`); });
   const toCustom = () => { if (w.preset !== "Custom") { w.preset = "Custom"; w.dual = true; w.door = ""; w.range = ""; } };
   el.querySelector(`#${side}-ammo`).addEventListener("change", e => { w.ammo = e.target.value; toCustom(); update(`${side}-ammo`); });
   el.querySelector(`#${side}-kind`).addEventListener("change", e => { w.kind = e.target.value; toCustom(); update(`${side}-kind`); });
