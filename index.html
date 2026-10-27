@@ -86,6 +86,12 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px s
 .traits { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 18px; }
 .traits > label:first-child { width: 120px; }
 .traits .check { padding-bottom: 8px; }
+.modes { display: flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; width: fit-content; max-width: 100%; }
+.modes button {
+  font: 600 0.85rem var(--font-body); color: var(--muted); background: var(--bg); border: 0; padding: 7px 12px; cursor: pointer;
+}
+.modes button + button { border-left: 1px solid var(--line); }
+.modes button[aria-pressed="true"] { background: var(--c); color: var(--surface); }
 .plenty { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 14px; }
 .plenty label { width: 170px; }
 .plenty.off { opacity: 0.6; }
@@ -170,40 +176,55 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
 
   <footer>
     <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
-    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells are counted as one extra re-roll of your missed dice per card, so the per-die hit chance becomes <code>1 − (1 − p)^(cards + 1)</code>. Hover a tag like Sniper or Reload to see what it does. Some card stats, especially the Epic weapons, may not match your printing, so check your cards and edit the numbers if anything differs. Click a row to set the target.</p>
+    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Click a row to set the target.</p>
   </footer>
 </div>
 
 <script>
-// The 2nd edition core box roster.
-// group, name, dice, accuracy, damage, range, kind (M melee / R ranged), noisy attack, door ("" none / "quiet" / "noisy"), ammo, traits
+// The 2nd edition core box roster, checked against the card sheet.
+// group, name, dice, accuracy, damage, range, kind (M melee / R ranged / C car), noisy attack, door ("" none / "quiet" / "noisy"), ammo, traits
 const PRESETS = [
-  ["Starting", "Baseball Bat", 1, 3, 1, "0", "M", false, "", "", []],
+  ["Starting", "Baseball Bat", 2, 3, 1, "0", "M", false, "", "", []],
   ["Starting", "Crowbar", 1, 4, 1, "0", "M", false, "quiet", "", []],
   ["Starting", "Fire Axe", 1, 4, 2, "0", "M", false, "noisy", "", []],
-  ["Starting", "Pistol", 1, 4, 1, "0–1", "R", true, "", "Bullets", ["Dual"]],
+  ["Starting", "Pistol", 1, 3, 1, "0–1", "R", true, "", "Bullets", ["Dual"]],
   ["Equipment deck", "Chainsaw", 5, 5, 2, "0", "M", true, "noisy", "", []],
-  ["Equipment deck", "Katana", 2, 4, 1, "0", "M", false, "", "", []],
-  ["Equipment deck", "Kukri", 2, 4, 1, "0", "M", false, "", "", ["Dual"]],
-  ["Equipment deck", "Machete", 1, 4, 2, "0", "M", false, "", "", ["Dual"]],
+  ["Equipment deck", "Katana", 2, 4, 1, "0", "M", false, "", "", ["Dual"]],
+  ["Equipment deck", "Kukri", 2, 4, 2, "0", "M", false, "", "", []],
+  ["Equipment deck", "Machete", 1, 3, 2, "0", "M", false, "", "", ["Dual"]],
   ["Equipment deck", "Sawed-Off", 2, 3, 1, "0–1", "R", true, "", "Shells", ["Dual", "Reload"]],
   ["Equipment deck", "Shotgun", 2, 4, 2, "0–1", "R", true, "", "Shells", []],
   ["Equipment deck", "Sniper Rifle", 1, 3, 2, "1–3", "R", true, "", "Bullets", ["Sniper"]],
   ["Equipment deck", "Sub-MG", 3, 5, 1, "0–1", "R", true, "", "Bullets", ["Dual"]],
-  ["Epic", "Army Sniper Rifle", 2, 2, 2, "1–3", "R", true, "", "Bullets", ["Sniper"]],
+  ["Epic", "Army Sniper Rifle", 2, 3, 2, "1–4", "R", true, "", "Bullets", ["Sniper"]],
   ["Epic", "Automatic Shotgun", 3, 4, 2, "0–1", "R", true, "", "Shells", []],
-  ["Epic", "Evil Twins", 2, 3, 1, "0–1", "R", true, "", "Bullets", ["Dual"]],
-  ["Epic", "Golden AK-47", 3, 4, 2, "0–2", "R", true, "", "Bullets", []],
-  ["Epic", "Golden Kukri", 2, 3, 2, "0", "M", false, "", "", ["Dual"]],
-  ["Epic", "Gunblade", 2, 4, 2, "0", "M", false, "", "", []],
-  ["Epic", "Ma's Shotgun", 2, 3, 2, "0–1", "R", true, "", "Shells", ["Reload"]],
-  ["Epic", "Nailbat", 2, 3, 1, "0", "M", false, "", "", []],
-  ["Epic", "Zantetsuken", 2, 3, 3, "0", "M", false, "", "", []],
-].map(([group, name, dice, acc, dmg, range, kind, noisy, door, ammo, traits]) =>
-  ({ group, name, dice, acc, dmg, range, kind, noisy, door, ammo, dual: traits.includes("Dual"), sniper: traits.includes("Sniper"), reload: traits.includes("Reload") }));
+  ["Epic", "Evil Twins", 2, 3, 1, "0–1", "R", true, "", "Bullets", []],
+  ["Epic", "Golden AK-47", 3, 4, 2, "1–2", "R", true, "", "Bullets", []],
+  ["Epic", "Golden Kukri", 4, 4, 2, "0", "M", false, "", "", []],
+  ["Epic", "Gunblade", 2, 4, 2, "0–1", "R", true, "", "Bullets", [], { dice: 4, acc: 4, dmg: 2, range: "0", kind: "M", noisy: false, ammo: "" }],
+  ["Epic", "Ma's Shotgun", 2, 3, 2, "0–1", "R", true, "", "Shells", ["Reload"], { dice: 1, acc: 3, dmg: 2, range: "0", kind: "M", noisy: false, ammo: "", reload: false }],
+  ["Epic", "Nailbat", 2, 3, 2, "0", "M", false, "", "", []],
+  ["Epic", "Zantetsuken", 5, 4, 1, "0", "M", false, "", "", []],
+  ["Cars", "Muscle Car", 3, 4, 2, "0", "C", false, "", "", []],
+  ["Cars", "Police Car", 3, 4, 2, "0", "C", false, "", "", []],
+].map(([group, name, dice, acc, dmg, range, kind, noisy, door, ammo, traits, alt]) => {
+  const main = { dice, acc, dmg, range, kind, noisy, door, ammo, dual: traits.includes("Dual"), sniper: traits.includes("Sniper"), reload: traits.includes("Reload") };
+  // A weapon with both a melee and a ranged profile lists melee first.
+  const modes = alt ? [main, { ...main, ...alt }].sort((x, y) => (x.kind === "M" ? 0 : 1) - (y.kind === "M" ? 0 : 1)) : [main];
+  return { group, name, ...main, modes };
+});
+const STAT_KEYS = ["dice", "acc", "dmg"];
+function applyPreset(w, pr, mode) {
+  const m = pr.modes.find(x => x.kind === mode) || pr.modes[0];
+  for (const k of [...STAT_KEYS, ...TRAIT_KEYS]) w[k] = m[k];
+  w.preset = pr.name;
+  if (!m.dual) w.dualOn = false;
+}
+const KIND_NAMES = { M: "Melee", R: "Ranged", C: "Car" };
 const TRAIT_KEYS = ["kind", "noisy", "door", "ammo", "dual", "sniper", "reload", "range"];
 const TRAIT_HELP = {
   Melee: "Attacks Zombies in your own Zone with a Melee Action.",
+  Car: "Drive Fast moves 2 Zones and attacks each Zone with Zombies along the way. Friendly Fire and Targeting Priority apply, so misses can hit Survivors there.",
   Ranged: "Fires at a Zone in range with a Ranged Action. Misses can't hit Survivors in 2nd edition.",
   Quiet: "Attacking with it makes no Noise token.",
   Noisy: "Each attack Action with it places a Noise token in your Zone.",
@@ -221,12 +242,14 @@ try { const s = JSON.parse(localStorage.getItem("zw-odds")); if (s && s.a && s.b
 const CUSTOM_TRAITS = { kind: "M", noisy: false, door: "", ammo: "", dual: false, sniper: false, reload: false, range: "" };
 for (const w of [state.a, state.b]) {
   if (w.preset !== "Custom" && !PRESETS.some(p => p.name === w.preset)) w.preset = "Custom";
-  const pr = PRESETS.find(p => p.name === w.preset) || CUSTOM_TRAITS;
-  for (const k of TRAIT_KEYS) if (!(k in w)) w[k] = pr[k];
+  const pr = PRESETS.find(p => p.name === w.preset);
+  // Saved presets take their current card stats, in case the presets were corrected since.
+  if (pr) { const dualOn = w.dualOn; applyPreset(w, pr, w.kind); w.dualOn = dualOn && w.dual; }
+  else for (const k of TRAIT_KEYS) if (!(k in w)) w[k] = CUSTOM_TRAITS[k];
   if (!("plenty" in w)) w.plenty = 0;
 }
 function chips(w) {
-  const out = [w.kind === "R" ? "Ranged" : "Melee", w.noisy ? "Noisy" : "Quiet"];
+  const out = [KIND_NAMES[w.kind], w.noisy ? "Noisy" : "Quiet"];
   if (w.dual) out.push("Dual");
   if (w.sniper) out.push("Sniper");
   if (w.reload) out.push("Reload");
@@ -245,10 +268,11 @@ function atLeast(n, p, k) {
 }
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const totalDice = w => w.dice * (w.dualOn ? 2 : 1);
-const baseP = w => (7 - w.acc) / 6;
-// Each Plenty of Bullets/Shells card matching the weapon's ammo lets you re-roll the misses once more.
+const hitP = w => (7 - w.acc) / 6;
+// Each Plenty of Bullets/Shells card matching the weapon's ammo re-rolls the whole attack once,
+// and the new result replaces the old one. You re-roll only while short of the hits you need.
 const rerolls = w => (w.ammo ? w.plenty : 0);
-const hitP = w => 1 - (1 - baseP(w)) ** (1 + rerolls(w));
+const chance = (w, k) => 1 - (1 - atLeast(totalDice(w), hitP(w), k)) ** (1 + rerolls(w));
 function fmt(p) {
   if (p >= 0.99995) return "100%";
   if (p > 0 && p < 0.0005) return "<0.1%";
@@ -273,6 +297,8 @@ function renderWeapon(side) {
       <div class="stats">${w.range ? "Range " + w.range + " · " : ""}Dmg ${w.dmg}</div>
     </div>
     <div class="chips">${chips(w)}</div>
+    ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
+      `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
     <label for="${side}-preset">Weapon
       <select id="${side}-preset">${options}<option${w.preset === "Custom" ? " selected" : ""}>Custom</option></select>
     </label>
@@ -283,7 +309,7 @@ function renderWeapon(side) {
     </div>
     <div class="traits">
       <label for="${side}-kind">Type
-        <select id="${side}-kind"><option value="M"${w.kind === "M" ? " selected" : ""}>Melee</option><option value="R"${w.kind === "R" ? " selected" : ""}>Ranged</option></select>
+        <select id="${side}-kind"><option value="M"${w.kind === "M" ? " selected" : ""}>Melee</option><option value="R"${w.kind === "R" ? " selected" : ""}>Ranged</option><option value="C"${w.kind === "C" ? " selected" : ""}>Car</option></select>
       </label>
       <label class="check" for="${side}-noisy"><input type="checkbox" id="${side}-noisy"${w.noisy ? " checked" : ""}> Noisy</label>
       <label class="check" for="${side}-sniper"><input type="checkbox" id="${side}-sniper"${w.sniper ? " checked" : ""}> Sniper</label>
@@ -296,23 +322,20 @@ function renderWeapon(side) {
       <label for="${side}-plenty">${w.ammo ? "Plenty of " + w.ammo : "Plenty of Bullets / Shells"}
         <input type="number" id="${side}-plenty" min="0" max="6" value="${w.plenty}"${w.ammo ? "" : " disabled"}>
       </label>
-      <span class="hint">${w.ammo ? `Each card re-rolls your misses once more.${w.plenty ? ` ${fmt(baseP(w))} per die becomes ${fmt(hitP(w))}.` : ""}` : "Only works with Bullets or Shells weapons."}</span>
+      <span class="hint">${w.ammo ? `Each card lets you re-roll the whole attack once if it falls short.${w.plenty ? ` At least 1 hit goes from ${fmt(atLeast(n, p, 1))} to ${fmt(chance(w, 1))}.` : ""}` : "Only works with Bullets or Shells weapons."}</span>
     </div>
     <label class="check" for="${side}-dual"><input type="checkbox" id="${side}-dual"${w.dualOn ? " checked" : ""}${w.dual ? "" : " disabled"}> Dual wield (double the dice)${w.dual ? "" : `<span class="hint">not a Dual weapon</span>`}</label>
-    <div class="dice">${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= w.acc)).join("")}<span class="dice-note">${w.acc}+ hits · ${fmt(p)} per die${rerolls(w) ? ` with ${rerolls(w)} re-roll${rerolls(w) > 1 ? "s" : ""}` : ""}</span></div>
+    <div class="dice">${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= w.acc)).join("")}<span class="dice-note">${w.acc}+ hits · ${fmt(p)} per die</span></div>
     <div class="summary">
       <div><b>${n}</b>dice rolled</div>
-      <div><b>${(n * p).toFixed(2)}</b>average hits</div>
-      <div><b>${fmt(atLeast(n, p, 1))}</b>at least 1 hit</div>
+      <div><b>${(n * p).toFixed(2)}</b>average hits per roll</div>
+      <div><b>${fmt(chance(w, 1))}</b>at least 1 hit</div>
     </div>`;
   const sel = el.querySelector("select");
   sel.addEventListener("change", () => {
     const pr = PRESETS.find(p => p.name === sel.value);
-    if (pr) {
-      Object.assign(w, { preset: pr.name, dice: pr.dice, acc: pr.acc, dmg: pr.dmg });
-      for (const k of TRAIT_KEYS) w[k] = pr[k];
-      if (!pr.dual) w.dualOn = false;
-    } else Object.assign(w, { preset: "Custom", ...CUSTOM_TRAITS, kind: w.kind, noisy: w.noisy, ammo: w.ammo, dual: true, range: "" });
+    if (pr) applyPreset(w, pr, pr.kind);
+    else Object.assign(w, { preset: "Custom", ...CUSTOM_TRAITS, kind: w.kind, noisy: w.noisy, ammo: w.ammo, dual: true, range: "" });
     update();
   });
   for (const key of ["dice", "acc", "dmg"]) {
@@ -322,10 +345,13 @@ function renderWeapon(side) {
       const v = parseInt(inp.value, 10);
       w[key] = clamp(isNaN(v) ? w[key] : v, ...lim);
       const pr = PRESETS.find(p => p.name === w.preset);
-      if (!pr || pr.dice !== w.dice || pr.acc !== w.acc || pr.dmg !== w.dmg) w.preset = "Custom";
+      if (!pr || !pr.modes.some(m => m.kind === w.kind && STAT_KEYS.every(k => m[k] === w[k]))) w.preset = "Custom";
       update(`${side}-${key}`);
     });
   }
+  el.querySelectorAll(".modes button").forEach(btn => btn.addEventListener("click", () => {
+    applyPreset(w, preset, btn.dataset.mode); update(btn.id);
+  }));
   el.querySelector(`#${side}-dual`).addEventListener("change", e => { w.dualOn = e.target.checked; update(`${side}-dual`); });
   el.querySelector(`#${side}-plenty`).addEventListener("change", e => {
     const v = parseInt(e.target.value, 10); w.plenty = clamp(isNaN(v) ? w.plenty : v, 0, 6); update(`${side}-plenty`);
@@ -345,13 +371,13 @@ function label(side) {
 
 function renderCompare() {
   const A = state.a, B = state.b;
-  const na = totalDice(A), nb = totalDice(B), pa = hitP(A), pb = hitP(B);
+  const na = totalDice(A), nb = totalDice(B);
   const maxK = Math.max(na, nb, state.target);
   document.getElementById("legA").textContent = label("a");
   document.getElementById("legB").textContent = label("b");
   let html = `<div class="row head"><div>Hits</div><div>Weapon A</div><div>Weapon B</div></div>`;
   for (let k = 1; k <= maxK; k++) {
-    const va = atLeast(na, pa, k), vb = atLeast(nb, pb, k);
+    const va = chance(A, k), vb = chance(B, k);
     const cell = (side, v, other) => `<div class="cell ${side}${v > other + 1e-9 ? " win" : ""}${v === 0 ? " zero" : ""}">
       <div class="pct">${fmt(v)}</div><div class="bar"><span style="width:${(v * 100).toFixed(2)}%"></span></div></div>`;
     html += `<div class="row${k === state.target ? " target" : ""}" data-k="${k}"><div class="k">≥ ${k}</div>${cell("a", va, vb)}${cell("b", vb, va)}</div>`;
@@ -362,7 +388,7 @@ function renderCompare() {
     state.target = +r.dataset.k; document.getElementById("target").value = state.target; update();
   }));
 
-  const k = state.target, va = atLeast(na, pa, k), vb = atLeast(nb, pb, k);
+  const k = state.target, va = chance(A, k), vb = chance(B, k);
   const z = k === 1 ? "1 zombie" : `${k} zombies`;
   let v;
   if (Math.abs(va - vb) < 1e-9) v = `Against ${z}, both weapons are dead even at ${fmt(va)}.`;

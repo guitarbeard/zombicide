@@ -12,7 +12,9 @@ The math follows depesz's [The hard math of killing zombies in Zombicide](https:
 
 ## Presets
 
-The weapon list is the 2nd edition core box: starting gear, the equipment deck and the Epic weapons. Each preset records dice, accuracy, damage, range, melee or ranged, noise, and traits such as Dual, Sniper and Reload. Edit the `PRESETS` array in `index.html` to correct or add weapons.
+The weapon list is the 2nd edition core box: starting gear, the equipment deck and the Epic weapons. Each preset records dice, accuracy, damage, range, melee or ranged, noise, and traits such as Dual, Sniper and Reload. Ma's Shotgun and Gunblade carry both a melee and a ranged profile. Edit the `PRESETS` array in `index.html` to add weapons.
+
+Plenty of Bullets and Plenty of Shells each re-roll the whole attack once. The odds assume you re-roll only when short of the hits you need, so the chance becomes `1 - (1 - P)^(cards + 1)`.
 
 ## Development
 
