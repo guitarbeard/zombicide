@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Compare kill odds for Zombicide 2nd edition weapons or custom dice pools.">
 <title>Zombicide Weapon Odds</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -53,6 +55,10 @@ header h1 {
   line-height: 0.95; margin: 0; text-transform: uppercase; letter-spacing: 0.01em; text-wrap: balance;
 }
 header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
+header .edition {
+  margin: 6px 0 0; font: 700 clamp(1.1rem, 2.6vw, 1.4rem)/1 var(--font-display);
+  text-transform: uppercase; letter-spacing: 0.14em; color: var(--a);
+}
 header a { color: inherit; }
 
 .weapons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -66,14 +72,18 @@ header a { color: inherit; }
 .weapon-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tag { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--c); }
 .picker { position: relative; }
-.picker select {
-  appearance: none; -webkit-appearance: none; cursor: pointer;
+/* The big face shows the weapon; the real select sits invisibly on top, so its list opens at normal text size. */
+.picker-face {
   font: 900 clamp(1.6rem, 4.5vw, 2.2rem)/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.01em;
   color: var(--fg); background: var(--c-soft); border: 2px solid var(--c); border-radius: 6px;
-  padding: 12px 52px 12px 14px; width: 100%;
+  padding: 12px 52px 12px 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.picker select:hover { border-width: 3px; padding: 11px 51px 11px 13px; }
-.picker select option, .picker select optgroup { font: 500 1rem var(--font-body); text-transform: none; color: var(--fg); background: var(--surface); }
+.picker:hover .picker-face { border-width: 3px; padding: 11px 51px 11px 13px; }
+.picker:focus-within .picker-face { outline: 2px solid var(--c); outline-offset: 2px; }
+.picker select {
+  position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+  font: 500 1rem var(--font-body); padding: 0; border: 0;
+}
 .picker::after {
   content: ""; position: absolute; right: 20px; top: 50%; width: 12px; height: 12px; pointer-events: none;
   border-right: 4px solid var(--c); border-bottom: 4px solid var(--c); transform: translateY(-70%) rotate(45deg);
@@ -207,6 +217,7 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
 <div class="wrap">
   <header>
     <h1>Zombicide Weapon Odds</h1>
+    <p class="edition">2nd Edition</p>
     <p>Pick two weapons, or set your own dice and accuracy, and see the chance of scoring at least N hits in one attack. Uses the binomial math from <a href="https://www.depesz.com/2016/05/17/the-hard-math-of-killing-zombies-in-zombicide/" target="_blank" rel="noopener">depesz's “hard math of killing zombies”</a>.</p>
   </header>
 
@@ -365,6 +376,7 @@ function renderWeapon(side) {
       <div class="stats">${w.range ? "Range " + w.range + " · " : ""}Dmg ${w.dmg}</div>
     </div>
     <div class="picker">
+      <div class="picker-face" aria-hidden="true">${w.preset === "Custom" ? "Custom dice" : w.preset}</div>
       <select id="${side}-preset" aria-label="Weapon ${side.toUpperCase()}">${options}<option value="Custom"${w.preset === "Custom" ? " selected" : ""}>Custom dice</option></select>
     </div>
     <div class="chips">${chips(w)}${preset ? `<button type="button" class="card-btn" id="${side}-card" aria-expanded="${!!state.showCards}">${state.showCards ? "Hide card" : "Show card"}</button>` : ""}</div>
