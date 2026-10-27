@@ -176,13 +176,13 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
 
   <footer>
     <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
-    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Click a row to set the target.</p>
+    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Click a row to set the target.</p>
   </footer>
 </div>
 
 <script>
 // The 2nd edition core box roster, checked against the card sheet.
-// group, name, dice, accuracy, damage, range, kind (M melee / R ranged), noisy attack, door ("" none / "quiet" / "noisy"), ammo, traits
+// group, name, dice, accuracy, damage, range, kind (M melee / R ranged / C car), noisy attack, door ("" none / "quiet" / "noisy"), ammo, traits
 const PRESETS = [
   ["Starting", "Baseball Bat", 2, 3, 1, "0", "M", false, "", "", []],
   ["Starting", "Crowbar", 1, 4, 1, "0", "M", false, "quiet", "", []],
@@ -205,6 +205,8 @@ const PRESETS = [
   ["Epic", "Ma's Shotgun", 2, 3, 2, "0–1", "R", true, "", "Shells", ["Reload"], { dice: 1, acc: 3, dmg: 2, range: "0", kind: "M", noisy: false, ammo: "", reload: false }],
   ["Epic", "Nailbat", 2, 3, 2, "0", "M", false, "", "", []],
   ["Epic", "Zantetsuken", 5, 4, 1, "0", "M", false, "", "", []],
+  ["Cars", "Muscle Car", 3, 4, 2, "0", "C", false, "", "", []],
+  ["Cars", "Police Car", 3, 4, 2, "0", "C", false, "", "", []],
 ].map(([group, name, dice, acc, dmg, range, kind, noisy, door, ammo, traits, alt]) => {
   const main = { dice, acc, dmg, range, kind, noisy, door, ammo, dual: traits.includes("Dual"), sniper: traits.includes("Sniper"), reload: traits.includes("Reload") };
   // A weapon with both a melee and a ranged profile lists melee first.
@@ -218,9 +220,11 @@ function applyPreset(w, pr, mode) {
   w.preset = pr.name;
   if (!m.dual) w.dualOn = false;
 }
+const KIND_NAMES = { M: "Melee", R: "Ranged", C: "Car" };
 const TRAIT_KEYS = ["kind", "noisy", "door", "ammo", "dual", "sniper", "reload", "range"];
 const TRAIT_HELP = {
   Melee: "Attacks Zombies in your own Zone with a Melee Action.",
+  Car: "Drive Fast moves 2 Zones and attacks each Zone with Zombies along the way. Friendly Fire and Targeting Priority apply, so misses can hit Survivors there.",
   Ranged: "Fires at a Zone in range with a Ranged Action. Misses can't hit Survivors in 2nd edition.",
   Quiet: "Attacking with it makes no Noise token.",
   Noisy: "Each attack Action with it places a Noise token in your Zone.",
@@ -245,7 +249,7 @@ for (const w of [state.a, state.b]) {
   if (!("plenty" in w)) w.plenty = 0;
 }
 function chips(w) {
-  const out = [w.kind === "R" ? "Ranged" : "Melee", w.noisy ? "Noisy" : "Quiet"];
+  const out = [KIND_NAMES[w.kind], w.noisy ? "Noisy" : "Quiet"];
   if (w.dual) out.push("Dual");
   if (w.sniper) out.push("Sniper");
   if (w.reload) out.push("Reload");
@@ -294,7 +298,7 @@ function renderWeapon(side) {
     </div>
     <div class="chips">${chips(w)}</div>
     ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
-      `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${m.kind === "M" ? "Melee" : "Ranged"} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
+      `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
     <label for="${side}-preset">Weapon
       <select id="${side}-preset">${options}<option${w.preset === "Custom" ? " selected" : ""}>Custom</option></select>
     </label>
@@ -305,7 +309,7 @@ function renderWeapon(side) {
     </div>
     <div class="traits">
       <label for="${side}-kind">Type
-        <select id="${side}-kind"><option value="M"${w.kind === "M" ? " selected" : ""}>Melee</option><option value="R"${w.kind === "R" ? " selected" : ""}>Ranged</option></select>
+        <select id="${side}-kind"><option value="M"${w.kind === "M" ? " selected" : ""}>Melee</option><option value="R"${w.kind === "R" ? " selected" : ""}>Ranged</option><option value="C"${w.kind === "C" ? " selected" : ""}>Car</option></select>
       </label>
       <label class="check" for="${side}-noisy"><input type="checkbox" id="${side}-noisy"${w.noisy ? " checked" : ""}> Noisy</label>
       <label class="check" for="${side}-sniper"><input type="checkbox" id="${side}-sniper"${w.sniper ? " checked" : ""}> Sniper</label>
