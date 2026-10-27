@@ -39,6 +39,7 @@
   --die: #2b2f28; --die-off: #23261f; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -62,9 +63,21 @@ header a { color: inherit; }
 }
 .weapon[data-side="a"] { --c: var(--a); --c-soft: var(--a-soft); }
 .weapon[data-side="b"] { --c: var(--b); --c-soft: var(--b-soft); }
-.weapon-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.weapon-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tag { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--c); }
-.name { font-family: var(--font-display); font-weight: 900; font-size: 1.9rem; line-height: 1; text-transform: uppercase; margin: 2px 0 0; }
+.picker { position: relative; }
+.picker select {
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  font: 900 clamp(1.6rem, 4.5vw, 2.2rem)/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.01em;
+  color: var(--fg); background: var(--c-soft); border: 2px solid var(--c); border-radius: 6px;
+  padding: 12px 52px 12px 14px; width: 100%;
+}
+.picker select:hover { border-width: 3px; padding: 11px 51px 11px 13px; }
+.picker select option, .picker select optgroup { font: 500 1rem var(--font-body); text-transform: none; color: var(--fg); background: var(--surface); }
+.picker::after {
+  content: ""; position: absolute; right: 20px; top: 50%; width: 12px; height: 12px; pointer-events: none;
+  border-right: 4px solid var(--c); border-bottom: 4px solid var(--c); transform: translateY(-70%) rotate(45deg);
+}
 .stats { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
 
 label { display: grid; gap: 4px; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
@@ -116,10 +129,44 @@ img.card { display: block; width: auto; max-width: 100%; height: auto; max-heigh
 .summary { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
 .summary b { display: block; font-family: var(--font-mono); font-size: 1.25rem; color: var(--fg); font-weight: 500; }
 
-.compare { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
-.compare-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
-.compare h2 { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; text-transform: uppercase; margin: 0; line-height: 1; }
-.compare-head label { width: 150px; }
+.compare {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 24px rgb(0 0 0 / 0.18);
+}
+.compare-inner {
+  max-width: 980px; margin: 0 auto; display: grid; gap: 12px;
+  padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bar-head { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 10px 18px; }
+.bar-toggle {
+  display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 6px 0; cursor: pointer; color: var(--fg);
+  font: 900 1.3rem/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap;
+}
+.chev { width: 9px; height: 9px; border-right: 3px solid currentColor; border-top: 3px solid currentColor; transform: rotate(-45deg) translate(-1px, 2px); }
+.bar-toggle[aria-expanded="true"] .chev { transform: rotate(135deg) translate(-2px, 1px); }
+.target-ctl { display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.target-ctl label { font-size: 0.95rem; text-transform: none; letter-spacing: 0; color: var(--fg); display: block; }
+.target-ctl input { width: 3.2em; text-align: center; padding: 6px 4px; font-family: var(--font-mono); -moz-appearance: textfield; }
+.target-ctl input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.target-ctl button {
+  width: 34px; height: 34px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  font: 600 1.2rem/1 var(--font-body); cursor: pointer;
+}
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
+.q {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0;
+  padding: 6px 10px; border-radius: 4px; border: 1px solid var(--line); border-left: 4px solid var(--c);
+}
+.q.a { --c: var(--a); --c-soft: var(--a-soft); } .q.b { --c: var(--b); --c-soft: var(--b-soft); }
+.q.win { background: var(--c-soft); border-color: var(--c); }
+.q-name { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.q-pct { font: 500 1.35rem/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--c); }
+.bar-body { display: grid; gap: 12px; max-height: min(55vh, 520px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: 4px; }
+@media (max-width: 640px) {
+  .bar-head { grid-template-columns: 1fr auto; }
+  .quick { grid-column: 1 / -1; }
+}
 .verdict { font-size: 1.05rem; margin: 0; max-width: 65ch; }
 .verdict strong.a { color: var(--a); } .verdict strong.b { color: var(--b); }
 
@@ -168,21 +215,35 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
     <div class="weapon" data-side="b" id="wb"></div>
   </section>
 
-  <section class="compare">
-    <div class="compare-head">
-      <h2>Head to head</h2>
-      <label for="target">Zombies to kill
-        <input type="number" id="target" min="1" max="30" value="2">
-      </label>
+  <section class="compare" id="compare" aria-label="Head to head">
+    <div class="compare-inner">
+      <div class="bar-head">
+        <button type="button" class="bar-toggle" id="bar-toggle" aria-expanded="false" aria-controls="bar-body">
+          <span class="chev" aria-hidden="true"></span><span>Head to head</span>
+        </button>
+        <div class="target-ctl">
+          <label for="target">Kill</label>
+          <button type="button" id="t-minus" aria-label="One fewer zombie">−</button>
+          <input type="number" id="target" min="1" max="30" value="2" inputmode="numeric">
+          <button type="button" id="t-plus" aria-label="One more zombie">+</button>
+          <span id="t-unit">zombies</span>
+        </div>
+        <div class="quick">
+          <div class="q a" id="qa"><span class="q-name"></span><b class="q-pct"></b></div>
+          <div class="q b" id="qb"><span class="q-name"></span><b class="q-pct"></b></div>
+        </div>
+      </div>
+      <div class="bar-body" id="bar-body" hidden>
+        <p class="verdict" id="verdict"></p>
+        <div class="legend"><span class="a" id="legA"></span><span class="b" id="legB"></span></div>
+        <div class="rows" id="rows"></div>
+      </div>
     </div>
-    <p class="verdict" id="verdict"></p>
-    <div class="legend"><span class="a" id="legA"></span><span class="b" id="legB"></span></div>
-    <div class="rows" id="rows"></div>
   </section>
 
   <footer>
     <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
-    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Click a row to set the target.</p>
+    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Open Head to head at the bottom for the full table, and click a row to set the target.</p>
   </footer>
 </div>
 
@@ -300,16 +361,16 @@ function renderWeapon(side) {
     `</optgroup>`).join("");
   el.innerHTML = `
     <div class="weapon-head">
-      <div><div class="tag">Weapon ${side.toUpperCase()}</div><div class="name">${w.preset === "Custom" ? "Custom dice" : w.preset}</div></div>
+      <label class="tag" for="${side}-preset">Weapon ${side.toUpperCase()}</label>
       <div class="stats">${w.range ? "Range " + w.range + " · " : ""}Dmg ${w.dmg}</div>
+    </div>
+    <div class="picker">
+      <select id="${side}-preset" aria-label="Weapon ${side.toUpperCase()}">${options}<option value="Custom"${w.preset === "Custom" ? " selected" : ""}>Custom dice</option></select>
     </div>
     <div class="chips">${chips(w)}${preset ? `<button type="button" class="card-btn" id="${side}-card" aria-expanded="${!!state.showCards}">${state.showCards ? "Hide card" : "Show card"}</button>` : ""}</div>
     ${preset && state.showCards ? `<img class="card" src="cards/${cardSlug(preset.name)}.webp" alt="${preset.name} card" width="${preset.group === "Cars" ? 156 : 234}" height="${preset.group === "Cars" ? 240 : 360}">` : ""}
     ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
       `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
-    <label for="${side}-preset">Weapon
-      <select id="${side}-preset">${options}<option${w.preset === "Custom" ? " selected" : ""}>Custom</option></select>
-    </label>
     <div class="fields">
       <label for="${side}-dice">Dice<input type="number" id="${side}-dice" min="1" max="20" value="${w.dice}"></label>
       <label for="${side}-acc">Accuracy<input type="number" id="${side}-acc" min="2" max="6" value="${w.acc}"></label>
@@ -380,6 +441,17 @@ function label(side) {
 
 function renderCompare() {
   const A = state.a, B = state.b;
+  const open = !!state.barOpen;
+  document.getElementById("bar-toggle").setAttribute("aria-expanded", open);
+  document.getElementById("bar-body").hidden = !open;
+  document.getElementById("t-unit").textContent = state.target === 1 ? "zombie" : "zombies";
+  const qa = chance(A, state.target), qb = chance(B, state.target);
+  for (const [side, val, other] of [["a", qa, qb], ["b", qb, qa]]) {
+    const el = document.getElementById("q" + side);
+    el.querySelector(".q-name").textContent = state[side].preset === "Custom" ? "Custom dice" : state[side].preset;
+    el.querySelector(".q-pct").textContent = fmt(val);
+    el.classList.toggle("win", val > other + 1e-9);
+  }
   const na = totalDice(A), nb = totalDice(B);
   const maxK = Math.max(na, nb, state.target);
   document.getElementById("legA").textContent = label("a");
@@ -427,6 +499,16 @@ document.getElementById("target").addEventListener("change", e => {
   const v = parseInt(e.target.value, 10);
   state.target = clamp(isNaN(v) ? state.target : v, 1, 30); e.target.value = state.target; update("target");
 });
+for (const [id, step] of [["t-minus", -1], ["t-plus", 1]])
+  document.getElementById(id).addEventListener("click", () => {
+    state.target = clamp(state.target + step, 1, 30); document.getElementById("target").value = state.target; update();
+  });
+document.getElementById("bar-toggle").addEventListener("click", () => { state.barOpen = !state.barOpen; update(); });
+// Keep the page's last content clear of the fixed Head to head bar.
+const barHead = document.querySelector(".bar-head");
+const padForBar = () => { document.body.style.paddingBottom = barHead.offsetHeight + 48 + "px"; };
+if ("ResizeObserver" in window) new ResizeObserver(padForBar).observe(barHead);
+padForBar();
 update();
 </script>
 </body>
