@@ -86,6 +86,10 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px s
 .traits { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 18px; }
 .traits > label:first-child { width: 120px; }
 .traits .check { padding-bottom: 8px; }
+.plenty { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 14px; }
+.plenty label { width: 170px; }
+.plenty.off { opacity: 0.6; }
+.plenty .hint { margin: 0 0 9px; flex: 1 1 180px; }
 .hint { font-size: 0.78rem; color: var(--muted); margin-left: 6px; }
 .check input:disabled + .hint, .check:has(input:disabled) { color: var(--muted); }
 .dice { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
@@ -166,7 +170,7 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
 
   <footer>
     <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
-    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Hover a tag like Sniper or Reload to see what it does. Some card stats, especially the Epic weapons, may not match your printing, so check your cards and edit the numbers if anything differs. Click a row to set the target.</p>
+    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells are counted as one extra re-roll of your missed dice per card, so the per-die hit chance becomes <code>1 − (1 − p)^(cards + 1)</code>. Hover a tag like Sniper or Reload to see what it does. Some card stats, especially the Epic weapons, may not match your printing, so check your cards and edit the numbers if anything differs. Click a row to set the target.</p>
   </footer>
 </div>
 
@@ -219,6 +223,7 @@ for (const w of [state.a, state.b]) {
   if (w.preset !== "Custom" && !PRESETS.some(p => p.name === w.preset)) w.preset = "Custom";
   const pr = PRESETS.find(p => p.name === w.preset) || CUSTOM_TRAITS;
   for (const k of TRAIT_KEYS) if (!(k in w)) w[k] = pr[k];
+  if (!("plenty" in w)) w.plenty = 0;
 }
 function chips(w) {
   const out = [w.kind === "R" ? "Ranged" : "Melee", w.noisy ? "Noisy" : "Quiet"];
@@ -240,7 +245,10 @@ function atLeast(n, p, k) {
 }
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const totalDice = w => w.dice * (w.dualOn ? 2 : 1);
-const hitP = w => (7 - w.acc) / 6;
+const baseP = w => (7 - w.acc) / 6;
+// Each Plenty of Bullets/Shells card matching the weapon's ammo lets you re-roll the misses once more.
+const rerolls = w => (w.ammo ? w.plenty : 0);
+const hitP = w => 1 - (1 - baseP(w)) ** (1 + rerolls(w));
 function fmt(p) {
   if (p >= 0.99995) return "100%";
   if (p > 0 && p < 0.0005) return "<0.1%";
@@ -280,9 +288,18 @@ function renderWeapon(side) {
       <label class="check" for="${side}-noisy"><input type="checkbox" id="${side}-noisy"${w.noisy ? " checked" : ""}> Noisy</label>
       <label class="check" for="${side}-sniper"><input type="checkbox" id="${side}-sniper"${w.sniper ? " checked" : ""}> Sniper</label>
       <label class="check" for="${side}-reload"><input type="checkbox" id="${side}-reload"${w.reload ? " checked" : ""}> Reload</label>
+      <label for="${side}-ammo">Ammo
+        <select id="${side}-ammo"><option value=""${w.ammo ? "" : " selected"}>None</option><option${w.ammo === "Bullets" ? " selected" : ""}>Bullets</option><option${w.ammo === "Shells" ? " selected" : ""}>Shells</option></select>
+      </label>
+    </div>
+    <div class="plenty${w.ammo ? "" : " off"}">
+      <label for="${side}-plenty">${w.ammo ? "Plenty of " + w.ammo : "Plenty of Bullets / Shells"}
+        <input type="number" id="${side}-plenty" min="0" max="6" value="${w.plenty}"${w.ammo ? "" : " disabled"}>
+      </label>
+      <span class="hint">${w.ammo ? `Each card re-rolls your misses once more.${w.plenty ? ` ${fmt(baseP(w))} per die becomes ${fmt(hitP(w))}.` : ""}` : "Only works with Bullets or Shells weapons."}</span>
     </div>
     <label class="check" for="${side}-dual"><input type="checkbox" id="${side}-dual"${w.dualOn ? " checked" : ""}${w.dual ? "" : " disabled"}> Dual wield (double the dice)${w.dual ? "" : `<span class="hint">not a Dual weapon</span>`}</label>
-    <div class="dice">${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= w.acc)).join("")}<span class="dice-note">${w.acc}+ hits · ${fmt(p)} per die</span></div>
+    <div class="dice">${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= w.acc)).join("")}<span class="dice-note">${w.acc}+ hits · ${fmt(p)} per die${rerolls(w) ? ` with ${rerolls(w)} re-roll${rerolls(w) > 1 ? "s" : ""}` : ""}</span></div>
     <div class="summary">
       <div><b>${n}</b>dice rolled</div>
       <div><b>${(n * p).toFixed(2)}</b>average hits</div>
@@ -295,7 +312,7 @@ function renderWeapon(side) {
       Object.assign(w, { preset: pr.name, dice: pr.dice, acc: pr.acc, dmg: pr.dmg });
       for (const k of TRAIT_KEYS) w[k] = pr[k];
       if (!pr.dual) w.dualOn = false;
-    } else Object.assign(w, { preset: "Custom", ...CUSTOM_TRAITS, kind: w.kind, noisy: w.noisy, dual: true, range: "" });
+    } else Object.assign(w, { preset: "Custom", ...CUSTOM_TRAITS, kind: w.kind, noisy: w.noisy, ammo: w.ammo, dual: true, range: "" });
     update();
   });
   for (const key of ["dice", "acc", "dmg"]) {
@@ -310,7 +327,11 @@ function renderWeapon(side) {
     });
   }
   el.querySelector(`#${side}-dual`).addEventListener("change", e => { w.dualOn = e.target.checked; update(`${side}-dual`); });
-  const toCustom = () => { if (w.preset !== "Custom") { w.preset = "Custom"; w.dual = true; w.door = ""; w.ammo = ""; w.range = ""; } };
+  el.querySelector(`#${side}-plenty`).addEventListener("change", e => {
+    const v = parseInt(e.target.value, 10); w.plenty = clamp(isNaN(v) ? w.plenty : v, 0, 6); update(`${side}-plenty`);
+  });
+  const toCustom = () => { if (w.preset !== "Custom") { w.preset = "Custom"; w.dual = true; w.door = ""; w.range = ""; } };
+  el.querySelector(`#${side}-ammo`).addEventListener("change", e => { w.ammo = e.target.value; toCustom(); update(`${side}-ammo`); });
   el.querySelector(`#${side}-kind`).addEventListener("change", e => { w.kind = e.target.value; toCustom(); update(`${side}-kind`); });
   for (const key of ["noisy", "sniper", "reload"])
     el.querySelector(`#${side}-${key}`).addEventListener("change", e => { w[key] = e.target.checked; toCustom(); update(`${side}-${key}`); });
@@ -318,7 +339,8 @@ function renderWeapon(side) {
 
 function label(side) {
   const w = state[side];
-  return `${w.preset === "Custom" ? "Custom" : w.preset} (${totalDice(w)}d, ${w.acc}+)`;
+  const r = rerolls(w);
+  return `${w.preset === "Custom" ? "Custom" : w.preset} (${totalDice(w)}d, ${w.acc}+${r ? `, ${r} re-roll${r > 1 ? "s" : ""}` : ""})`;
 }
 
 function renderCompare() {
