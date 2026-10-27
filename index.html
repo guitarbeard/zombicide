@@ -207,8 +207,20 @@ img.card { display: block; width: auto; max-width: 100%; height: auto; max-heigh
 .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; background: var(--c); }
 .legend .a { --c: var(--a); } .legend .b { --c: var(--b); }
 
-footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; max-width: 70ch; }
-footer p { margin: 0; }
+footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
+footer p { margin: 0; max-width: 70ch; }
+.credit {
+  justify-self: end; display: flex; align-items: center; gap: 12px; margin-top: 12px;
+  color: var(--muted); text-decoration: none; font-size: 0.85rem;
+}
+.credit-text { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+.credit-text span:first-child { color: var(--fg); font-weight: 600; }
+.credit:hover .credit-text span:first-child { text-decoration: underline; }
+.credit-stamp { display: block; flex: none; transform: rotate(-10deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .credit-stamp { transition: transform 0.3s ease; }
+  .credit:hover .credit-stamp { transform: rotate(-2deg); }
+}
 code { font-family: var(--font-mono); font-size: 0.85em; }
 @media (prefers-reduced-motion: no-preference) { .bar span { transition: width 0.25s ease; } }
 </style>
@@ -255,6 +267,10 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
   <footer>
     <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
     <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Open Head to head at the bottom for the full table, and click a row to set the target.</p>
+    <a class="credit" href="https://alxdna.dev" target="_blank" rel="noopener">
+      <span class="credit-text"><span>Designed and built by Alex Medina</span><span>Made in Long Beach, CA</span></span>
+      <img class="credit-stamp" src="alxdna-stamp.svg" alt="" width="72" height="72">
+    </a>
   </footer>
 </div>
 
