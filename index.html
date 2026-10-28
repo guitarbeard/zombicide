@@ -174,8 +174,21 @@ img.card { display: block; width: auto; max-width: 100%; height: auto; max-heigh
 .q-pct { font: 500 1.35rem/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--c); }
 .bar-body { display: grid; gap: 12px; max-height: min(55vh, 520px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: 4px; }
 @media (max-width: 640px) {
-  .bar-head { grid-template-columns: 1fr auto; }
+  .bar-head { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; }
   .quick { grid-column: 1 / -1; }
+}
+/* Small phones: tighten the bar so the target controls and both odds fit. */
+@media (max-width: 480px) {
+  .bar-toggle { font-size: 1.05rem; gap: 6px; }
+  .target-ctl { gap: 4px; }
+  .target-ctl button { width: 30px; height: 30px; }
+  .target-ctl input { width: 2.6em; padding: 4px 2px; }
+  .q { padding: 5px 8px; gap: 6px; }
+  .q-name { font-size: 0.8rem; }
+  .q-pct { font-size: 1.1rem; }
+}
+@media (max-width: 360px) {
+  .target-ctl label, #t-unit { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 .verdict { font-size: 1.05rem; margin: 0; max-width: 65ch; }
 .verdict strong.a { color: var(--a); } .verdict strong.b { color: var(--b); }
