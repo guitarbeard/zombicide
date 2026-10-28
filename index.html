@@ -96,6 +96,11 @@ select, input[type="number"] {
   font: 500 1rem var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
   border-radius: 4px; padding: 8px 10px; width: 100%; min-width: 0;
 }
+select {
+  appearance: none; -webkit-appearance: none; padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 19px) 55%, calc(100% - 14px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
+}
 select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--c, var(--a)); outline-offset: 2px; }
 .fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 0.9rem; font-weight: 500; color: var(--fg); }
@@ -122,10 +127,16 @@ img.card { display: block; width: auto; max-width: 100%; height: auto; max-heigh
 }
 .modes button + button { border-left: 1px solid var(--line); }
 .modes button[aria-pressed="true"] { background: var(--c); color: var(--surface); }
+.equipment { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+.section-head { display: flex; align-items: center; gap: 8px; }
+.section-title { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .plenty { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 14px; }
 .plenty label { width: 170px; }
-.plenty.off { opacity: 0.6; }
-.plenty .hint { margin: 0 0 9px; flex: 1 1 180px; }
+.plenty label.off { opacity: 0.6; }
+.equipment > .hint { margin: 0; }
+.card-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.card-row img.card { max-height: 260px; }
+img.card.survivor-card { max-height: 300px; }
 .hint { font-size: 0.78rem; color: var(--muted); margin-left: 6px; }
 .check input:disabled + .hint, .check:has(input:disabled) { color: var(--muted); }
 .details-btn {
@@ -139,7 +150,9 @@ img.card { display: block; width: auto; max-width: 100%; height: auto; max-heigh
 }
 .auto-note { margin: 0; font-size: 0.95rem; }
 .survivor { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
-.survivor > label { max-width: 220px; }
+.surv-head { align-items: end; }
+.surv-head label { flex: 0 1 220px; }
+.surv-head .card-btn { margin-bottom: 8px; }
 .skills { display: grid; gap: 6px; }
 .skill { font-size: 0.88rem; }
 .skill.na { color: var(--muted); }
@@ -304,7 +317,7 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
 
   <footer>
     <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
-    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov is left out because it kills everything in its Zone without rolling. Plenty of Bullets and Plenty of Shells each let you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Pick a Survivor under Stats &amp; survivor to add their skills: +1 die, +1 to dice roll and +1 damage change the roll, Lucky adds a re-roll of the whole attack, and Roll 6: +1 die Combat adds a die for every 6. Combat skills don't apply to car attacks. Rolled odds never show 100%, because every die can miss; only a Molotov is certain. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Open Head to head at the bottom for the full table, and click a row to set the target.</p>
+    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov kills everything in its Zone without rolling, so it is the only 100%. Set Plenty of Bullets and Plenty of Shells under Equipment; the counts stay when you switch weapons, and only the ones matching the weapon's ammo count. Each one lets you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Pick a Survivor for each weapon to add their skills: +1 die, +1 to dice roll and +1 damage change the roll, Lucky adds a re-roll of the whole attack, and Roll 6: +1 die Combat adds a die for every 6. Combat skills don't apply to car attacks. Rolled odds never show 100%, because every die can miss; only a Molotov is certain. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Open Head to head at the bottom for the full table, and click a row to set the target.</p>
     <a class="credit" href="https://alxdna.dev" target="_blank" rel="noopener">
       <span class="credit-text"><span>Designed and built by Alex Medina</span><span>Made in Long Beach, CA</span></span>
       <img class="credit-stamp" src="alxdna-stamp.svg" alt="" width="72" height="72">
@@ -428,7 +441,9 @@ for (const w of [state.a, state.b]) {
   // Saved presets take their current card stats, in case the presets were corrected since.
   if (pr) { const dualOn = w.dualOn; applyPreset(w, pr, w.kind); w.dualOn = dualOn && w.dual; }
   else for (const k of TRAIT_KEYS) if (!(k in w)) w[k] = CUSTOM_TRAITS[k];
-  if (!("plenty" in w)) w.plenty = 0;
+  // Each survivor carries their own Plenty cards; they stay put when the weapon changes.
+  if (!("bullets" in w)) { w.bullets = w.ammo === "Bullets" ? w.plenty || 0 : 0; w.shells = w.ammo === "Shells" ? w.plenty || 0 : 0; }
+  delete w.plenty;
   if (!SURVIVORS[w.survivor]) { w.survivor = ""; w.skills = {}; }
 }
 function chips(w) {
@@ -458,7 +473,8 @@ const hitP = w => (7 - eff(w).acc) / 6;
 // Each Plenty of Bullets/Shells card matching the weapon's ammo re-rolls the whole attack once,
 // and the new result replaces the old one; Lucky does the same for any attack. You re-roll only
 // while short of the hits you need.
-const rerolls = w => (w.ammo ? w.plenty : 0) + (eff(w).lucky ? 1 : 0);
+const plentyFor = w => w.ammo === "Bullets" ? w.bullets : w.ammo === "Shells" ? w.shells : 0;
+const rerolls = w => plentyFor(w) + (eff(w).lucky ? 1 : 0);
 // Roll 6: +1 die Combat. Each natural 6 adds a die, which can roll another 6. One die then yields a chain:
 // l - 1 sixes (all hits) and a last non-6 die that hits with chance q.
 function explodingAtLeast(n, p, k) {
@@ -524,7 +540,7 @@ function renderWeapon(side) {
     ${preset && state.showCards ? `<img class="card" src="cards/${cardSlug(preset.name)}.webp" alt="${preset.name} card" width="${preset.group === "Cars" ? 156 : 234}" height="${preset.group === "Cars" ? 240 : 360}">` : ""}
     ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
       `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
-    <button type="button" class="details-btn" id="${side}-details" aria-expanded="${!!(state.open || {})[side]}">${(state.open || {})[side] ? "Hide stats & survivor" : "Stats & survivor"}</button>
+    <button type="button" class="details-btn" id="${side}-details" aria-expanded="${!!(state.open || {})[side]}">${(state.open || {})[side] ? "Hide stats, survivor & equipment" : "Stats, survivor & equipment"}</button>
     <div class="details">
     ${w.auto ? `<p class="auto-note">A Molotov needs no roll: discard it to eliminate every Actor in the target Zone, Survivors included. It can kill Abominations.</p>` : ""}
     <div class="fields"${w.auto ? " hidden" : ""}>
@@ -543,19 +559,26 @@ function renderWeapon(side) {
         <select id="${side}-ammo"><option value=""${w.ammo ? "" : " selected"}>None</option><option${w.ammo === "Bullets" ? " selected" : ""}>Bullets</option><option${w.ammo === "Shells" ? " selected" : ""}>Shells</option></select>
       </label>
     </div>
-    <div class="plenty${w.ammo ? "" : " off"}"${w.auto ? " hidden" : ""}>
-      <label for="${side}-plenty">${w.ammo ? "Plenty of " + w.ammo : "Plenty of Bullets / Shells"}
-        <input type="number" id="${side}-plenty" min="0" max="6" value="${w.plenty}"${w.ammo ? "" : " disabled"}>
-      </label>
-      <span class="hint">${w.ammo ? `Each card lets you re-roll the whole attack once if it falls short.${w.plenty ? ` At least 1 hit goes from ${fmt(atLeast(n, p, 1))} to ${fmt(chance(w, 1))}.` : ""}` : "Only works with Bullets or Shells weapons."}</span>
-    </div>
     <label class="check" for="${side}-dual"${w.auto ? " hidden" : ""}><input type="checkbox" id="${side}-dual"${e.dualOn ? " checked" : ""}${e.dualOK ? "" : " disabled"}> Dual wield (double the dice)${e.dualOK ? (w.dual ? "" : `<span class="hint">thanks to Ambidextrous</span>`) : `<span class="hint">not a Dual weapon</span>`}</label>
     <div class="survivor">
-      <label for="${side}-surv">Survivor
+      <div class="section-head surv-head"><label for="${side}-surv">Survivor
         <select id="${side}-surv">${survOptions}</select>
       </label>
+      ${w.survivor ? `<button type="button" class="card-btn" id="${side}-surv-card" aria-expanded="${!!state.showSurvCards}">${state.showSurvCards ? "Hide survivor card" : "Show survivor card"}</button>` : ""}</div>
+      ${w.survivor && state.showSurvCards ? `<img class="card survivor-card" src="cards/survivor-${cardSlug(w.survivor)}.webp" alt="${w.survivor} ID card" width="347" height="302">` : ""}
       ${w.survivor ? `<div class="skills">${skillRows}</div>
       <p class="hint">Blue skills are always on. Tick the Orange and Red skills ${w.survivor} has unlocked.${changed && !w.auto ? ` Attacks with this weapon: ${e.dice} ${e.dice === 1 ? "die" : "dice"} per weapon at ${e.acc}+, damage ${e.dmg}${e.lucky ? ", 1 Lucky re-roll" : ""}${e.six ? ", 6s add dice" : ""}.` : ""}</p>` : ""}
+    </div>
+    <div class="equipment">
+      <div class="section-head"><span class="section-title">Equipment</span>
+        <button type="button" class="card-btn" id="${side}-equip-card" aria-expanded="${!!state.showEquipCards}">${state.showEquipCards ? "Hide equipment cards" : "Show equipment cards"}</button></div>
+      ${state.showEquipCards ? `<div class="card-row">${["Bullets", "Shells"].map(a => `<img class="card" src="cards/plenty-of-${a.toLowerCase()}.webp" alt="Plenty of ${a} card" width="169" height="260">`).join("")}</div>` : ""}
+      <div class="plenty">${["Bullets", "Shells"].map(a => `
+        <label for="${side}-${a.toLowerCase()}" class="${w.ammo === a ? "" : "off"}">Plenty of ${a}
+          <input type="number" id="${side}-${a.toLowerCase()}" min="0" max="6" value="${w[a.toLowerCase()]}">
+        </label>`).join("")}
+      </div>
+      <p class="hint">${w.auto ? "A Molotov doesn't roll, so these don't change it." : w.ammo ? `Each Plenty of ${w.ammo} re-rolls the whole attack once if it falls short.${plentyFor(w) ? ` At least 1 hit goes from ${fmt(atLeast(n, p, 1))} to ${fmt(chance(w, 1))}.` : ""}` : "This weapon uses neither Bullets nor Shells, so these cards don't change it."}</p>
     </div>
     <div class="dice"${w.auto ? " hidden" : ""}>${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= e.acc)).join("")}<span class="dice-note">${e.acc}+ hits · ${fmt(p)} per die</span></div>
     <div class="summary"${w.auto ? " hidden" : ""}>
@@ -594,9 +617,12 @@ function renderWeapon(side) {
   el.querySelectorAll(".skill input:not(:disabled)").forEach(inp => inp.addEventListener("change", () => {
     w.skills = { ...(w.skills || {}), [inp.dataset.i]: inp.checked }; update(inp.id);
   }));
-  el.querySelector(`#${side}-plenty`).addEventListener("change", e => {
-    const v = parseInt(e.target.value, 10); w.plenty = clamp(isNaN(v) ? w.plenty : v, 0, 6); update(`${side}-plenty`);
-  });
+  for (const key of ["bullets", "shells"])
+    el.querySelector(`#${side}-${key}`).addEventListener("change", e => {
+      const v = parseInt(e.target.value, 10); w[key] = clamp(isNaN(v) ? w[key] : v, 0, 6); update(`${side}-${key}`);
+    });
+  el.querySelector(`#${side}-surv-card`)?.addEventListener("click", () => { state.showSurvCards = !state.showSurvCards; update(`${side}-surv-card`); });
+  el.querySelector(`#${side}-equip-card`).addEventListener("click", () => { state.showEquipCards = !state.showEquipCards; update(`${side}-equip-card`); });
   el.querySelector(`#${side}-card`)?.addEventListener("click", () => { state.showCards = !state.showCards; update(`${side}-card`); });
   const toCustom = () => { if (w.preset !== "Custom") { w.preset = "Custom"; w.dual = true; w.door = ""; w.range = ""; } };
   el.querySelector(`#${side}-ammo`).addEventListener("change", e => { w.ammo = e.target.value; toCustom(); update(`${side}-ammo`); });
