@@ -9,242 +9,314 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Big+Shoulders+Stencil+Display:wght@800;900&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: two weapon cards side by side, then a head-to-head table of "at least N hits" odds */
+/* Layout: two loadout sheets side by side, each led by a card-style stat line; a dark Head to head band
+   pinned to the bottom answers the question. Stencil for names, Barlow for the rules text. */
 :root {
-  --bg: #eeeee8;
-  --surface: #fbfbf7;
-  --fg: #1d201b;
-  --muted: #62675c;
-  --line: #d3d4ca;
-  --a: #c2410c;
-  --a-soft: #f6d6c4;
-  --b: #0f766e;
-  --b-soft: #c5e6e1;
+  --bg: #dadcd5;
+  --surface: #f3f4f0;
+  --fg: #15171a;
+  --muted: #565b53;
+  --line: #b5b9ae;
+  --a: #c4470c;
+  --a-soft: #f2d2bf;
+  --b: #245b8a;
+  --b-soft: #cddcea;
+  --on-c: #ffffff;
   --die: #ffffff;
-  --die-off: #e2e3da;
+  --die-off: #e2e4dd;
+  --band: #15171a;
+  --band-fg: #e9ebe5;
+  --band-muted: #a1a79c;
+  --band-line: #383c40;
+  --band-raise: #23272a;
+  --band-a: #f0712d;
+  --band-a-soft: #5a2a12;
+  --band-b: #64a3d8;
+  --band-b-soft: #1b3b58;
   --lvl-blue: #2f6fbf; --lvl-orange: #c8641a; --lvl-red: #c2302b;
+  --font-stencil: "Big Shoulders Stencil Display", "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
   --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
-  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-label: "Barlow Condensed", "Arial Narrow", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #151713; --surface: #1e211c; --fg: #e8e9e1; --muted: #9ba091; --line: #343830;
-    --a: #fb8a4c; --a-soft: #4a2716; --b: #3cc4b4; --b-soft: #12403b;
-    --die: #2b2f28; --die-off: #23261f; color-scheme: dark;
+    --bg: #111315; --surface: #1a1d20; --fg: #e6e8e2; --muted: #9ba196; --line: #33373b;
+    --a: #f0712d; --a-soft: #47220f; --b: #64a3d8; --b-soft: #162f47; --on-c: #111315;
+    --die: #282c30; --die-off: #1f2225; --band: #050607; --band-raise: #16191b; --band-line: #2c3034;
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151713; --surface: #1e211c; --fg: #e8e9e1; --muted: #9ba091; --line: #343830;
-  --a: #fb8a4c; --a-soft: #4a2716; --b: #3cc4b4; --b-soft: #12403b;
-  --die: #2b2f28; --die-off: #23261f; color-scheme: dark;
+  --bg: #111315; --surface: #1a1d20; --fg: #e6e8e2; --muted: #9ba196; --line: #33373b;
+  --a: #f0712d; --a-soft: #47220f; --b: #64a3d8; --b-soft: #162f47; --on-c: #111315;
+  --die: #282c30; --die-off: #1f2225; --band: #050607; --band-raise: #16191b; --band-line: #2c3034;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body {
   margin: 0;
-  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
-  padding-block: 28px 48px;
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-block: 32px 48px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 24px; }
-header h1 {
-  font-family: var(--font-display); font-weight: 900; font-size: clamp(2.2rem, 6vw, 3.4rem);
-  line-height: 0.95; margin: 0; text-transform: uppercase; letter-spacing: 0.01em; text-wrap: balance;
-}
-header p { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
-header .edition {
-  margin: 6px 0 0; font: 700 clamp(1.1rem, 2.6vw, 1.4rem)/1 var(--font-display);
-  text-transform: uppercase; letter-spacing: 0.14em; color: var(--a);
-}
-header a { color: inherit; }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 28px; }
+a { color: inherit; text-underline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: 0.85em; }
 
-.weapons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-@media (max-width: 680px) { .weapons { grid-template-columns: 1fr; } }
-.weapon {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px;
-  display: grid; gap: 14px; min-width: 0; border-top: 5px solid var(--c);
+/* Masthead */
+header { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 40px; align-items: end; }
+@media (max-width: 760px) { header { grid-template-columns: 1fr; } }
+h1 { margin: 0; display: grid; gap: 6px; }
+.kicker {
+  font: 700 0.95rem/1 var(--font-label); letter-spacing: 0.22em; text-transform: uppercase; color: var(--a);
 }
+.wordmark {
+  font: 900 clamp(3.4rem, 11vw, 6.2rem)/0.82 var(--font-stencil); text-transform: uppercase; letter-spacing: 0.005em;
+}
+.lead { margin: 0; max-width: 46ch; font-size: 1.05rem; padding-bottom: 4px; text-wrap: pretty; }
+
+/* Dymo-style label tape */
+.tape {
+  display: inline-block; padding: 3px 9px 2px; border-radius: 2px; background: var(--fg); color: var(--surface);
+  font: 700 0.85rem/1.2 var(--font-label); letter-spacing: 0.18em; text-transform: uppercase;
+  box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.25);
+}
+
+/* Loadout sheets */
+.weapons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 700px) { .weapons { grid-template-columns: 1fr; } }
+.weapon { background: var(--surface); border: 2px solid var(--fg); border-radius: 3px; min-width: 0; display: grid; }
 .weapon[data-side="a"] { --c: var(--a); --c-soft: var(--a-soft); }
 .weapon[data-side="b"] { --c: var(--b); --c-soft: var(--b-soft); }
-.weapon-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.tag { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--c); }
+.band { background: var(--c); color: var(--on-c); padding: 12px 16px 10px; display: grid; gap: 4px; }
+.band-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.band .tape { background: var(--fg); color: var(--surface); }
 .picker { position: relative; }
 /* The big face shows the weapon; the real select sits invisibly on top, so its list opens at normal text size. */
 .picker-face {
-  font: 900 clamp(1.6rem, 4.5vw, 2.2rem)/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.01em;
-  color: var(--fg); background: var(--c-soft); border: 2px solid var(--c); border-radius: 6px;
-  padding: 12px 52px 12px 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 900 clamp(2.3rem, 6vw, 3.1rem)/1 var(--font-stencil); text-transform: uppercase; letter-spacing: 0.01em;
+  padding: 2px 44px 4px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-bottom: 2px solid transparent;
 }
-.picker:hover .picker-face { border-width: 3px; padding: 11px 51px 11px 13px; }
-.picker:focus-within .picker-face { outline: 2px solid var(--c); outline-offset: 2px; }
+.picker:hover .picker-face { border-bottom-color: currentColor; }
+.picker:focus-within { outline: 3px solid var(--fg); outline-offset: 2px; }
 .picker select {
   position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
   font: 500 1rem var(--font-body); padding: 0; border: 0;
 }
 .picker::after {
-  content: ""; position: absolute; right: 20px; top: 50%; width: 12px; height: 12px; pointer-events: none;
-  border-right: 4px solid var(--c); border-bottom: 4px solid var(--c); transform: translateY(-70%) rotate(45deg);
+  content: ""; position: absolute; right: 8px; top: 46%; width: 14px; height: 14px; pointer-events: none;
+  border-right: 4px solid currentColor; border-bottom: 4px solid currentColor; transform: translateY(-60%) rotate(45deg);
 }
-.stats { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
-
-label { display: grid; gap: 4px; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-select, input[type="number"] {
-  font: 500 1rem var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
-  border-radius: 4px; padding: 8px 10px; width: 100%; min-width: 0;
-}
-select {
-  appearance: none; -webkit-appearance: none; padding-right: 34px;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: calc(100% - 19px) 55%, calc(100% - 14px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
-}
-select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--c, var(--a)); outline-offset: 2px; }
-.fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 0.9rem; font-weight: 500; color: var(--fg); }
-.check input { width: 18px; height: 18px; accent-color: var(--c); }
-
-.chips { display: flex; gap: 8px; align-items: flex-start; }
-.pills { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 auto; min-width: 0; }
-.chips .card-btn { flex: none; white-space: nowrap; }
 .card-btn {
-  margin-left: auto; font: 600 0.8rem var(--font-body); color: var(--c); background: none;
-  border: 1px solid var(--c); border-radius: 999px; padding: 2px 10px; cursor: pointer; white-space: nowrap;
+  font: 700 0.8rem/1 var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; color: inherit;
+  background: none; border: 1.5px solid currentColor; border-radius: 2px; padding: 5px 9px; cursor: pointer; white-space: nowrap;
 }
-.card-btn:hover { background: var(--c-soft); }
-img.card { display: block; width: auto; max-width: 100%; height: auto; max-height: 360px; border-radius: 10px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.25); justify-self: center; }
+.card-btn:hover { background: rgb(127 127 127 / 0.14); }
+.sheet { display: grid; gap: 16px; padding: 14px 16px 18px; min-width: 0; }
+
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
-  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em; padding: 2px 9px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: help;
+  font: 700 0.78rem/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 5px 8px 4px; border: 1.5px solid var(--line); border-radius: 2px; color: var(--fg); cursor: help;
 }
 .chip.warn { border-color: var(--c); color: var(--c); }
-.traits { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 18px; }
-.traits > label:first-child { width: 120px; }
-.traits .check { padding-bottom: 8px; }
-.modes { display: flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; width: fit-content; max-width: 100%; }
-.modes button {
-  font: 600 0.85rem var(--font-body); color: var(--muted); background: var(--bg); border: 0; padding: 7px 12px; cursor: pointer;
-}
-.modes button + button { border-left: 1px solid var(--line); }
-.modes button[aria-pressed="true"] { background: var(--c); color: var(--surface); }
-.equipment { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
-.section-head { display: flex; align-items: center; gap: 8px; }
-.section-title { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.plenty { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 14px; }
-.plenty label { width: 170px; }
-.plenty label.off { opacity: 0.6; }
-.equipment > .hint { margin: 0; }
+.chip.surv { border-style: dashed; border-color: var(--c); }
+img.card { display: block; width: auto; max-width: 100%; height: auto; max-height: 360px; border-radius: 10px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.3); justify-self: center; }
 .card-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .card-row img.card { max-height: 260px; }
 img.card.survivor-card { max-height: 300px; }
-.hint { font-size: 0.78rem; color: var(--muted); margin-left: 6px; }
-.check input:disabled + .hint, .check:has(input:disabled) { color: var(--muted); }
-.details-btn {
-  display: none; justify-self: start; font: 600 0.9rem var(--font-body); color: var(--c); background: none;
-  border: 1px solid var(--c); border-radius: 4px; padding: 6px 12px; cursor: pointer;
+
+/* The stat line reads like the bottom of an equipment card; dice, accuracy and damage are editable. */
+.statline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 2px solid var(--fg); }
+.stat { color: var(--fg); display: grid; align-content: start; gap: 2px; padding: 8px 10px 6px; min-width: 0; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat-label { font: 700 0.75rem/1 var(--font-label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.stat-val { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1px; font: 900 2.4rem/1 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat-val .plus { font-size: 0.85em; }
+.stat input[type="number"] {
+  font: inherit; color: var(--fg); background: none; border: 0; border-bottom: 2px dashed var(--line); border-radius: 0;
+  width: 1.4em; padding: 0; text-align: left; -moz-appearance: textfield; cursor: text;
 }
-.details { display: grid; gap: 14px; }
-@media (max-width: 680px) {
-  .details-btn { display: inline-block; }
-  .weapon:not(.open) .details { display: none; }
+.stat input::-webkit-inner-spin-button, .stat input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.stat input:hover { border-bottom-color: var(--c); }
+.stat.wide { grid-column: span 3; }
+.stat { position: relative; }
+.stat .stat-val { padding-right: 30px; }
+.steps { position: absolute; right: 6px; bottom: 7px; display: grid; gap: 3px; }
+.steps button {
+  width: 26px; height: 20px; padding: 0; display: grid; place-items: center; cursor: pointer;
+  border: 1.5px solid var(--line); border-radius: 2px; background: var(--surface); color: var(--fg);
 }
-.auto-note { margin: 0; font-size: 0.95rem; }
-.survivor { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
-.surv-head { align-items: end; }
-.surv-head label { flex: 0 1 220px; }
-.surv-head .card-btn { margin-bottom: 8px; }
-.skills { display: grid; gap: 6px; }
-.skill { font-size: 0.88rem; }
-.skill.na { color: var(--muted); }
-.skill.na .lvl { opacity: 0.6; }
-.lvl {
-  display: inline-block; min-width: 54px; text-align: center; margin-right: 6px; padding: 1px 6px; border-radius: 3px;
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #fff;
+.steps button::before { content: ""; width: 7px; height: 7px; border-left: 2.5px solid currentColor; border-top: 2.5px solid currentColor; transform: translateY(2px) rotate(45deg); }
+.steps button.down::before { transform: translateY(-2px) rotate(225deg); }
+.steps button:hover:not(:disabled) { border-color: var(--c); color: var(--c); }
+.steps button:disabled { opacity: 0.35; cursor: default; }
+.numwrap { position: relative; display: block; }
+.numwrap input[type="number"] { padding-right: 40px; -moz-appearance: textfield; }
+.numwrap input::-webkit-inner-spin-button, .numwrap input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.numwrap .steps { top: 50%; bottom: auto; right: 4px; transform: translateY(-50%); gap: 2px; }
+.numwrap .steps button { height: 16px; }
+/* Phones: the stat cells are narrow, so the arrows sit in a row under the number with bigger targets. */
+@media (max-width: 480px) {
+  .stat .stat-val { padding-right: 0; }
+  .stat .steps { position: static; grid-auto-flow: column; justify-content: start; gap: 4px; margin-top: 6px; }
+  .stat .steps button { width: 30px; height: 26px; }
+  .stat .steps .down { order: -1; }
 }
-.lvl-B { background: var(--lvl-blue); } .lvl-O { background: var(--lvl-orange); } .lvl-R { background: var(--lvl-red); }
-.chip.surv { border-color: var(--c); }
-.survivor .hint { margin: 0; }
+.stat-val .eff { font-size: 0.5em; color: var(--c); margin-left: 5px; font-weight: 800; }
+.stat.wide .stat-val { font-size: 1.35rem; line-height: 1.15; white-space: normal; padding-top: 6px; }
+
+.modes { display: flex; flex-wrap: wrap; border: 1.5px solid var(--fg); border-radius: 2px; overflow: hidden; width: fit-content; max-width: 100%; }
+.modes button {
+  font: 700 0.85rem/1 var(--font-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg);
+  background: none; border: 0; padding: 8px 12px; cursor: pointer;
+}
+.modes button + button { border-left: 1.5px solid var(--fg); }
+.modes button[aria-pressed="true"] { background: var(--c); color: var(--on-c); }
+
 .dice { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .die {
-  width: 30px; height: 30px; border-radius: 6px; border: 1.5px solid var(--line); background: var(--die-off);
-  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 4px; opacity: 0.6;
+  width: 32px; height: 32px; border-radius: 6px; border: 1.5px solid var(--line); background: var(--die-off);
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 5px;
 }
-.die.hit { background: var(--die); border-color: var(--c); opacity: 1; }
-.die i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); place-self: center; }
+.die.hit { background: var(--die); border: 2px solid var(--c); }
+.die i { width: 5px; height: 5px; border-radius: 50%; background: var(--line); place-self: center; }
 .die.hit i { background: var(--c); }
-.dice-note { font-size: 0.85rem; color: var(--muted); margin-left: 4px; }
-.summary { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
-.summary b { display: block; font-family: var(--font-mono); font-size: 1.25rem; color: var(--fg); font-weight: 500; }
+.dice-note { font: 600 0.95rem var(--font-label); letter-spacing: 0.02em; color: var(--muted); margin-left: 4px; }
+.summary { display: flex; flex-wrap: wrap; gap: 10px 28px; }
+.summary div { display: grid; gap: 2px; font: 600 0.8rem/1.2 var(--font-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.summary b { font: 900 1.9rem/1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--fg); letter-spacing: 0.01em; }
 
+.details-btn {
+  display: none; justify-self: stretch; font: 700 0.9rem/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--fg); background: none; border: 1.5px solid var(--fg); border-radius: 2px; padding: 11px 12px; cursor: pointer;
+}
+.details-btn:hover { background: var(--c-soft); }
+.details { display: grid; gap: 18px; }
+@media (max-width: 700px) {
+  .details-btn { display: block; }
+  .weapon:not(.open) .details { display: none; }
+}
+.block { display: grid; gap: 10px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.block-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--fg); }
+.block-title { font: 800 1.15rem/1 var(--font-stencil); letter-spacing: 0.06em; text-transform: uppercase; }
+.auto-note { margin: 0; }
+
+label { display: grid; gap: 4px; font: 700 0.78rem/1.2 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+select, input[type="number"] {
+  font: 500 1rem var(--font-body); color: var(--fg); background: var(--bg); border: 1.5px solid var(--line);
+  border-radius: 2px; padding: 7px 10px; width: 100%; min-width: 0;
+}
+select {
+  appearance: none; -webkit-appearance: none; padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--fg) 50%), linear-gradient(135deg, var(--fg) 50%, transparent 50%);
+  background-position: calc(100% - 19px) 55%, calc(100% - 14px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--c, var(--a)); outline-offset: 2px; }
+.check { display: flex; align-items: center; gap: 8px; font: 500 0.98rem/1.3 var(--font-body); letter-spacing: 0; text-transform: none; color: var(--fg); }
+.check input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--c); }
+.traits { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 18px; }
+.traits > label:not(.check) { width: 120px; }
+.traits .check { padding-bottom: 9px; }
+.hint { font: 400 0.88rem/1.4 var(--font-body); color: var(--muted); margin: 0; text-transform: none; letter-spacing: 0; }
+.check .hint { margin-left: 4px; }
+.check:has(input:disabled) { color: var(--muted); }
+.surv-head { align-items: end; }
+.surv-head label { flex: 0 1 220px; }
+.skills { display: grid; gap: 6px; }
+.skill.na { color: var(--muted); }
+.skill.na .lvl { opacity: 0.55; }
+.lvl {
+  display: inline-block; min-width: 56px; text-align: center; padding: 2px 6px 1px; border-radius: 2px;
+  font: 700 0.7rem/1.3 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: #fff;
+}
+.lvl-B { background: var(--lvl-blue); } .lvl-O { background: var(--lvl-orange); } .lvl-R { background: var(--lvl-red); }
+.plenty { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 14px; }
+.plenty label { width: 170px; }
+.plenty label.off { opacity: 0.55; }
+
+/* Head to head: always-dark band pinned to the bottom of the screen. */
 .compare {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 24px rgb(0 0 0 / 0.18);
+  --fg: var(--band-fg); --muted: var(--band-muted); --line: var(--band-line); --bg: var(--band-raise); --surface: var(--band);
+  --a: var(--band-a); --a-soft: var(--band-a-soft); --b: var(--band-b); --b-soft: var(--band-b-soft); --die-off: var(--band-raise);
+  background: var(--band); color: var(--fg); border-top: 3px solid var(--a);
+  border-image: linear-gradient(90deg, var(--a) 50%, var(--b) 50%) 1;
+  box-shadow: 0 -8px 28px rgb(0 0 0 / 0.28); color-scheme: dark;
 }
 .compare-inner {
-  max-width: 980px; margin: 0 auto; display: grid; gap: 12px;
+  max-width: 1040px; margin: 0 auto; display: grid; gap: 12px;
   padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.bar-head { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 10px 18px; }
+.bar-head { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 10px 20px; }
 .bar-toggle {
-  display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 6px 0; cursor: pointer; color: var(--fg);
-  font: 900 1.3rem/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap;
+  display: flex; align-items: center; gap: 9px; background: none; border: 0; padding: 6px 0; cursor: pointer; color: var(--fg);
+  font: 900 1.45rem/1 var(--font-stencil); text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
 }
 .chev { width: 9px; height: 9px; border-right: 3px solid currentColor; border-top: 3px solid currentColor; transform: rotate(-45deg) translate(-1px, 2px); }
 .bar-toggle[aria-expanded="true"] .chev { transform: rotate(135deg) translate(-2px, 1px); }
-.target-ctl { display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
-.target-ctl label { font-size: 0.95rem; text-transform: none; letter-spacing: 0; color: var(--fg); display: block; }
-.target-ctl input { width: 3.2em; text-align: center; padding: 6px 4px; font-family: var(--font-mono); -moz-appearance: textfield; }
+.target-ctl { display: flex; align-items: center; gap: 6px; white-space: nowrap; font: 700 1rem var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; }
+.target-ctl label { font: inherit; letter-spacing: inherit; color: var(--fg); display: block; }
+.target-ctl input { width: 2.6em; text-align: center; padding: 4px 2px; font: 900 1.4rem/1 var(--font-display); -moz-appearance: textfield; }
 .target-ctl input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .target-ctl button {
-  width: 34px; height: 34px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+  width: 34px; height: 34px; border-radius: 2px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg);
   font: 600 1.2rem/1 var(--font-body); cursor: pointer;
 }
+.target-ctl button:hover { border-color: var(--fg); }
 .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
 .q {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0;
-  padding: 6px 10px; border-radius: 4px; border: 1px solid var(--line); border-left: 4px solid var(--c);
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0;
+  padding: 6px 10px; border-radius: 2px; border: 1.5px solid var(--line);
 }
 .q.a { --c: var(--a); --c-soft: var(--a-soft); } .q.b { --c: var(--b); --c-soft: var(--b-soft); }
-.q.win { background: var(--c-soft); border-color: var(--c); }
-.q-name { font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.q-pct { font: 500 1.35rem/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--c); }
+.q.win { border-color: var(--c); background: var(--c-soft); }
+.q-name { font: 700 0.85rem/1.1 var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.q-pct { font: 900 1.7rem/1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--c); letter-spacing: 0.01em; }
 .bar-body { display: grid; gap: 12px; max-height: min(55vh, 520px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: 4px; }
 @media (max-width: 640px) {
   .bar-head { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; }
   .quick { grid-column: 1 / -1; }
 }
-/* Small phones: tighten the bar so the target controls and both odds fit. */
+/* Small phones: tighten the band so the target controls and both odds fit. */
 @media (max-width: 480px) {
-  .bar-toggle { font-size: 1.05rem; gap: 6px; }
+  .bar-toggle { font-size: 1.15rem; gap: 6px; }
   .target-ctl { gap: 4px; }
   .target-ctl button { width: 30px; height: 30px; }
-  .target-ctl input { width: 2.6em; padding: 4px 2px; }
+  .target-ctl input { width: 2.3em; font-size: 1.2rem; }
   .q { padding: 5px 8px; gap: 6px; }
-  .q-name { font-size: 0.8rem; }
-  .q-pct { font-size: 1.1rem; }
+  .q-name { font-size: 0.78rem; }
+  .q-pct { font-size: 1.35rem; }
+  .stat-val { font-size: 2rem; }
+  .stat { padding-inline: 8px; }
 }
 @media (max-width: 360px) {
   .target-ctl label, #t-unit { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
-.verdict { font-size: 1.05rem; margin: 0; max-width: 65ch; }
+.verdict { font-size: 1.05rem; margin: 0; max-width: 68ch; }
 .verdict strong.a { color: var(--a); } .verdict strong.b { color: var(--b); }
 
 .rows { display: grid; gap: 2px; }
 .row {
   display: grid; grid-template-columns: 76px 1fr 1fr; gap: 12px; align-items: center;
-  padding: 6px 8px; border-radius: 4px; cursor: pointer;
+  padding: 6px 8px; border-radius: 2px; cursor: pointer;
 }
 .row:hover { background: var(--bg); }
 .row.target { background: var(--bg); outline: 1.5px solid var(--fg); }
-.row.head { cursor: default; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.row.head { cursor: default; font: 700 0.78rem var(--font-label); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
 .row.head:hover { background: none; }
 .k { font-family: var(--font-mono); font-size: 0.9rem; white-space: nowrap; }
-.cell { display: grid; grid-template-columns: 58px 1fr; gap: 8px; align-items: center; min-width: 0; }
+.cell { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; min-width: 0; }
 .pct { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; font-size: 0.92rem; }
-.bar { height: 12px; background: var(--die-off); border-radius: 2px; overflow: hidden; }
+.bar { height: 12px; background: var(--die-off); border-radius: 1px; overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--c-soft); border-right: 2px solid var(--c); }
 .cell.a { --c: var(--a); --c-soft: var(--a-soft); }
 .cell.b { --c: var(--b); --c-soft: var(--b-soft); }
@@ -255,38 +327,44 @@ img.card.survivor-card { max-height: 300px; }
   .cell { grid-template-columns: 1fr; gap: 3px; }
   .pct { text-align: left; }
 }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
-.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; background: var(--c); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.9rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
 .legend .a { --c: var(--a); } .legend .b { --c: var(--b); }
 
-footer { color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
-footer p { margin: 0; max-width: 70ch; }
+/* Notes: how the numbers are figured */
+.notes { display: grid; gap: 18px; border-top: 2px solid var(--fg); padding-top: 18px; }
+.notes h2 { margin: 0; font: 900 clamp(1.8rem, 4vw, 2.3rem)/1 var(--font-stencil); text-transform: uppercase; letter-spacing: 0.02em; }
+.notes dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 32px; }
+@media (max-width: 860px) { .notes dl { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) { .notes dl { grid-template-columns: 1fr; } }
+.notes dl > div { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.notes dt { font: 700 0.85rem/1.2 var(--font-label); letter-spacing: 0.16em; text-transform: uppercase; color: var(--a); }
+.notes dd { margin: 0; font-size: 0.95rem; color: var(--fg); text-wrap: pretty; }
+.notes dd + dd { margin-top: 6px; }
 .credit {
-  justify-self: end; display: flex; align-items: center; gap: 12px; margin-top: 12px;
-  color: var(--muted); text-decoration: none; font-size: 0.85rem;
+  justify-self: end; display: flex; align-items: center; gap: 12px; margin-top: 8px;
+  color: var(--muted); text-decoration: none; font-size: 0.88rem;
 }
-.credit-text { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+.credit-text { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
 .credit-text span:first-child { color: var(--fg); font-weight: 600; }
 .credit:hover .credit-text span:first-child { text-decoration: underline; }
 .credit-stamp { display: block; flex: none; transform: rotate(-10deg); }
 @media (prefers-reduced-motion: no-preference) {
   .credit-stamp { transition: transform 0.3s ease; }
   .credit:hover .credit-stamp { transform: rotate(-2deg); }
+  .bar span { transition: width 0.25s ease; }
 }
-code { font-family: var(--font-mono); font-size: 0.85em; }
-@media (prefers-reduced-motion: no-preference) { .bar span { transition: width 0.25s ease; } }
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <h1>Zombicide Weapon Odds</h1>
-    <p class="edition">2nd Edition</p>
-    <p>Pick two weapons, or set your own dice and accuracy, and see the chance of scoring at least N hits in one attack. Uses the binomial math from <a href="https://www.depesz.com/2016/05/17/the-hard-math-of-killing-zombies-in-zombicide/" target="_blank" rel="noopener">depesz's “hard math of killing zombies”</a>.</p>
+    <h1><span class="kicker">Zombicide 2nd Edition</span><span class="wordmark">Weapon<br>Odds</span></h1>
+    <p class="lead">Set two loadouts side by side and see which one is more likely to clear the Zone in a single attack. Change the zombie count in the bar at the bottom of the screen.</p>
   </header>
 
-  <section class="weapons">
+  <section class="weapons" aria-label="Loadouts">
     <div class="weapon" data-side="a" id="wa"></div>
     <div class="weapon" data-side="b" id="wb"></div>
   </section>
@@ -317,9 +395,36 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
     </div>
   </section>
 
-  <footer>
-    <p>Each die hits on a roll of its accuracy or higher, so the hit chance per die is <code>p = (7 − accuracy) / 6</code>. The chance of at least <i>k</i> hits with <i>n</i> dice is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</p>
-    <p>Hits only kill when damage is high enough: Walkers and Runners need 1, Brutes need 2, Abominations need 3. The presets are the weapons in the 2nd edition core box. Molotov kills everything in its Zone without rolling, so it is the only 100%. Set Plenty of Bullets and Plenty of Shells under Equipment; the counts stay when you switch weapons, and only the ones matching the weapon's ammo count. Each one lets you re-roll the whole attack once, keeping the new result. The odds assume you re-roll only when you have fewer hits than you need, so the chance becomes <code>1 − (1 − P)^(cards + 1)</code>, where <i>P</i> is the chance for a single roll. Weapons with both a melee and a ranged profile, like Ma's Shotgun and Gunblade, have a switch to pick which one you attack with. Car odds are for one Zone of a Drive Fast attack, which can attack a second Zone too. Pick a Survivor for each weapon to add their skills: +1 die, +1 to dice roll and +1 damage change the roll, Lucky adds a re-roll of the whole attack, and Roll 6: +1 die Combat adds a die for every 6. Combat skills don't apply to car attacks. Rolled odds never show 100%, because every die can miss; only a Molotov is certain. Hover a tag like Sniper or Reload to see what it does. Stats are taken from the 2nd edition card sheet. Open Head to head at the bottom for the full table, and click a row to set the target.</p>
+  <footer class="notes">
+    <h2>How the odds work</h2>
+    <dl>
+      <div>
+        <dt>The roll</dt>
+        <dd>Each die hits on its Accuracy or higher, so one die hits with chance <code>p = (7 − accuracy) / 6</code>. With <i>n</i> dice, the chance of at least <i>k</i> hits is <code>Σ C(n,i) · pⁱ · (1−p)ⁿ⁻ⁱ</code> for <i>i</i> from <i>k</i> to <i>n</i>.</dd>
+        <dd>The math follows depesz's <a href="https://www.depesz.com/2016/05/17/the-hard-math-of-killing-zombies-in-zombicide/" target="_blank" rel="noopener">The hard math of killing zombies in Zombicide</a>.</dd>
+      </div>
+      <div>
+        <dt>Hits and Damage</dt>
+        <dd>A hit only kills a zombie the weapon has enough Damage for. Walkers and Runners need 1, Brutes need 2 and Abominations need 3. The odds count hits, so check Damage against what is in the Zone.</dd>
+      </div>
+      <div>
+        <dt>Re-rolls</dt>
+        <dd>Plenty of Bullets and Plenty of Shells each re-roll the whole attack once, for weapons that use that ammo. Lucky adds one more. The odds assume you re-roll only when you come up short, so the chance becomes <code>1 − (1 − P)^(re-rolls + 1)</code>.</dd>
+        <dd>Card counts belong to the Survivor and stay put when you switch weapons.</dd>
+      </div>
+      <div>
+        <dt>Survivors</dt>
+        <dd>Pick a Survivor to add their skills. Blue skills always count; tick Orange and Red ones as they unlock. +1 die, +1 to dice roll, +1 damage, Lucky, Sniper, Ambidextrous and Roll 6: +1 die Combat all change the numbers. Skills don't apply to car attacks.</dd>
+      </div>
+      <div>
+        <dt>Cars and Molotovs</dt>
+        <dd>Car odds cover one Zone of a Drive Fast attack, which can also hit a second Zone. A Molotov doesn't roll. It kills everything in the Zone, so it is the only weapon that shows 100%. Any roll can miss, so rolled odds always stop short of it.</dd>
+      </div>
+      <div>
+        <dt>The weapons</dt>
+        <dd>Every weapon in the 2nd edition core box: starting gear, the Equipment deck, the Epic weapons and both cars, with stats from the cards. Ma's Shotgun and Gunblade have a melee and a ranged side. Hover a trait like Sniper or Reload for its rule, and tap a row in Head to head to set the zombie count.</dd>
+      </div>
+    </dl>
     <a class="credit" href="https://alxdna.dev" target="_blank" rel="noopener">
       <span class="credit-text"><span>Designed and built by Alex Medina</span><span>Made in Long Beach, CA</span></span>
       <img class="credit-stamp" src="alxdna-stamp.svg" alt="" width="72" height="72">
@@ -514,6 +619,9 @@ function dieSVG(face, hit) {
   return `<div class="die${hit ? " hit" : ""}" title="${face}: ${hit ? "hit" : "miss"}">${cells}</div>`;
 }
 
+// Up/down arrows for number boxes, so nobody has to type. They step the input and fire its change handler.
+const steps = (id, v, lo, hi, name) => `<span class="steps"><button type="button" class="up" id="${id}-up" data-step="1" data-for="${id}" aria-label="More ${name}"${v >= hi ? " disabled" : ""}></button><button type="button" class="down" id="${id}-down" data-step="-1" data-for="${id}" aria-label="Less ${name}"${v <= lo ? " disabled" : ""}></button></span>`;
+const digitsW = v => String(v).length * 0.56 + 0.14 + "em";
 function renderWeapon(side) {
   const w = state[side], el = document.getElementById("w" + side);
   const preset = PRESETS.find(p => p.name === w.preset);
@@ -529,67 +637,78 @@ function renderWeapon(side) {
   const options = [...new Set(PRESETS.map(p => p.group))].map(g => `<optgroup label="${g}">` +
     PRESETS.filter(p => p.group === g).map(p => `<option${p.name === w.preset ? " selected" : ""}>${p.name}</option>`).join("") +
     `</optgroup>`).join("");
+  const eff1 = (base, val, suffix = "") => val !== base ? `<small class="eff" title="With ${w.survivor}'s skills">→${val}${suffix}</small>` : "";
+  const open = !!(state.open || {})[side];
   el.innerHTML = `
-    <div class="weapon-head">
-      <label class="tag" for="${side}-preset">Weapon ${side.toUpperCase()}</label>
-      <div class="stats">${e.range ? "Range " + e.range + " · " : ""}${w.auto ? "Kills all" : "Dmg " + e.dmg}</div>
+    <div class="band">
+      <div class="band-top">
+        <label class="tape" for="${side}-preset">Weapon ${side.toUpperCase()}</label>
+        ${preset ? `<button type="button" class="card-btn" id="${side}-card" aria-expanded="${!!state.showCards}">${state.showCards ? "Hide card" : "Show card"}</button>` : ""}
+      </div>
+      <div class="picker">
+        <div class="picker-face" aria-hidden="true">${w.preset === "Custom" ? "Custom dice" : w.preset}</div>
+        <select id="${side}-preset" aria-label="Weapon ${side.toUpperCase()}">${options}<option value="Custom"${w.preset === "Custom" ? " selected" : ""}>Custom dice</option></select>
+      </div>
     </div>
-    <div class="picker">
-      <div class="picker-face" aria-hidden="true">${w.preset === "Custom" ? "Custom dice" : w.preset}</div>
-      <select id="${side}-preset" aria-label="Weapon ${side.toUpperCase()}">${options}<option value="Custom"${w.preset === "Custom" ? " selected" : ""}>Custom dice</option></select>
-    </div>
-    <div class="chips"><div class="pills">${chips(w)}</div>${preset ? `<button type="button" class="card-btn" id="${side}-card" aria-expanded="${!!state.showCards}">${state.showCards ? "Hide card" : "Show card"}</button>` : ""}</div>
+    <div class="sheet">
+    <div class="pills">${chips(w)}</div>
     ${preset && state.showCards ? `<img class="card" src="cards/${cardSlug(preset.name)}.webp" alt="${preset.name} card" width="${preset.group === "Cars" ? 156 : 234}" height="${preset.group === "Cars" ? 240 : 360}">` : ""}
+    <div class="statline">
+      <div class="stat"><span class="stat-label">Range</span><span class="stat-val">${e.range || "—"}</span></div>
+      ${w.auto ? `<div class="stat wide"><span class="stat-label">Attack</span><span class="stat-val">No roll. Kills everything in the Zone.</span></div>` : ""}
+      <label class="stat" for="${side}-dice"${w.auto ? " hidden" : ""}><span class="stat-label">Dice</span><span class="stat-val"><input type="number" id="${side}-dice" style="width:${digitsW(w.dice)}" min="1" max="20" value="${w.dice}">${eff1(w.dice, e.dice)}</span>${steps(`${side}-dice`, w.dice, 1, 20, "dice")}</label>
+      <label class="stat" for="${side}-acc"${w.auto ? " hidden" : ""}><span class="stat-label">Accuracy</span><span class="stat-val"><input type="number" id="${side}-acc" style="width:${digitsW(w.acc)}" min="2" max="6" value="${w.acc}"><span class="plus">+</span>${eff1(w.acc, e.acc, "+")}</span>${steps(`${side}-acc`, w.acc, 2, 6, "accuracy")}</label>
+      <label class="stat" for="${side}-dmg"${w.auto ? " hidden" : ""}><span class="stat-label">Damage</span><span class="stat-val"><input type="number" id="${side}-dmg" style="width:${digitsW(w.dmg)}" min="1" max="5" value="${w.dmg}">${eff1(w.dmg, e.dmg)}</span>${steps(`${side}-dmg`, w.dmg, 1, 5, "damage")}</label>
+    </div>
     ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
-      `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice}d ${m.acc}+ dmg ${m.dmg}</button>`).join("")}</div>` : ""}
-    <button type="button" class="details-btn" id="${side}-details" aria-expanded="${!!(state.open || {})[side]}">${(state.open || {})[side] ? "Hide stats, survivor & equipment" : "Stats, survivor & equipment"}</button>
+      `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice} ${m.dice === 1 ? "die" : "dice"} at ${m.acc}+</button>`).join("")}</div>` : ""}
+    <div class="dice"${w.auto ? " hidden" : ""}>${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= e.acc)).join("")}<span class="dice-note">${e.acc}+ hits · ${fmt(p)} a die</span></div>
+    <div class="summary"${w.auto ? " hidden" : ""}>
+      <div><b>${n}</b>dice rolled</div>
+      <div><b>${(n * p).toFixed(2)}</b>hits on average</div>
+      <div><b>${fmt(chance(w, 1))}</b>at least 1 hit</div>
+    </div>
+    ${w.auto ? `<p class="auto-note">Discard it to kill every Actor in the target Zone, Survivors included. It kills Abominations too.</p>` : ""}
+    <button type="button" class="details-btn" id="${side}-details" aria-expanded="${open}">${open ? "Close loadout" : "Edit loadout: traits, Survivor, ammo"}</button>
     <div class="details">
-    ${w.auto ? `<p class="auto-note">A Molotov needs no roll: discard it to eliminate every Actor in the target Zone, Survivors included. It can kill Abominations.</p>` : ""}
-    <div class="fields"${w.auto ? " hidden" : ""}>
-      <label for="${side}-dice">Dice<input type="number" id="${side}-dice" min="1" max="20" value="${w.dice}"></label>
-      <label for="${side}-acc">Accuracy<input type="number" id="${side}-acc" min="2" max="6" value="${w.acc}"></label>
-      <label for="${side}-dmg">Damage<input type="number" id="${side}-dmg" min="1" max="5" value="${w.dmg}"></label>
+    <div class="block">
+      <div class="block-head"><span class="block-title">Traits</span></div>
+      <div class="traits">
+        <label for="${side}-kind">Type
+          <select id="${side}-kind"><option value="M"${w.kind === "M" ? " selected" : ""}>Melee</option><option value="R"${w.kind === "R" ? " selected" : ""}>Ranged</option><option value="C"${w.kind === "C" ? " selected" : ""}>Car</option></select>
+        </label>
+        <label for="${side}-ammo">Ammo
+          <select id="${side}-ammo"><option value=""${w.ammo ? "" : " selected"}>None</option><option${w.ammo === "Bullets" ? " selected" : ""}>Bullets</option><option${w.ammo === "Shells" ? " selected" : ""}>Shells</option></select>
+        </label>
+        <label class="check" for="${side}-noisy"><input type="checkbox" id="${side}-noisy"${w.noisy ? " checked" : ""}> Noisy</label>
+        <label class="check" for="${side}-sniper"><input type="checkbox" id="${side}-sniper"${w.sniper ? " checked" : ""}> Sniper</label>
+        <label class="check" for="${side}-reload"><input type="checkbox" id="${side}-reload"${w.reload ? " checked" : ""}> Reload</label>
+      </div>
+      <label class="check" for="${side}-dual"${w.auto ? " hidden" : ""}><input type="checkbox" id="${side}-dual"${e.dualOn ? " checked" : ""}${e.dualOK ? "" : " disabled"}> Dual wield, doubling the dice${e.dualOK ? (w.dual ? "" : `<span class="hint">allowed by Ambidextrous</span>`) : `<span class="hint">only for Dual weapons</span>`}</label>
     </div>
-    <div class="traits">
-      <label for="${side}-kind">Type
-        <select id="${side}-kind"><option value="M"${w.kind === "M" ? " selected" : ""}>Melee</option><option value="R"${w.kind === "R" ? " selected" : ""}>Ranged</option><option value="C"${w.kind === "C" ? " selected" : ""}>Car</option></select>
-      </label>
-      <label class="check" for="${side}-noisy"><input type="checkbox" id="${side}-noisy"${w.noisy ? " checked" : ""}> Noisy</label>
-      <label class="check" for="${side}-sniper"><input type="checkbox" id="${side}-sniper"${w.sniper ? " checked" : ""}> Sniper</label>
-      <label class="check" for="${side}-reload"><input type="checkbox" id="${side}-reload"${w.reload ? " checked" : ""}> Reload</label>
-      <label for="${side}-ammo">Ammo
-        <select id="${side}-ammo"><option value=""${w.ammo ? "" : " selected"}>None</option><option${w.ammo === "Bullets" ? " selected" : ""}>Bullets</option><option${w.ammo === "Shells" ? " selected" : ""}>Shells</option></select>
-      </label>
-    </div>
-    <label class="check" for="${side}-dual"${w.auto ? " hidden" : ""}><input type="checkbox" id="${side}-dual"${e.dualOn ? " checked" : ""}${e.dualOK ? "" : " disabled"}> Dual wield (double the dice)${e.dualOK ? (w.dual ? "" : `<span class="hint">thanks to Ambidextrous</span>`) : `<span class="hint">not a Dual weapon</span>`}</label>
-    <div class="survivor">
-      <div class="section-head surv-head"><label for="${side}-surv">Survivor
+    <div class="block">
+      <div class="block-head surv-head"><label for="${side}-surv">Survivor
         <select id="${side}-surv">${survOptions}</select>
       </label>
-      ${w.survivor ? `<button type="button" class="card-btn" id="${side}-surv-card" aria-expanded="${!!state.showSurvCards}">${state.showSurvCards ? "Hide survivor card" : "Show survivor card"}</button>` : ""}</div>
+      ${w.survivor ? `<button type="button" class="card-btn" id="${side}-surv-card" aria-expanded="${!!state.showSurvCards}">${state.showSurvCards ? "Hide ID card" : "Show ID card"}</button>` : ""}</div>
       ${w.survivor && state.showSurvCards ? `<img class="card survivor-card" src="cards/survivor-${cardSlug(w.survivor)}.webp" alt="${w.survivor} ID card" width="347" height="302">` : ""}
       ${w.survivor ? `<div class="skills">${skillRows}</div>
-      <p class="hint">Blue skills are always on. Tick the Orange and Red skills ${w.survivor} has unlocked.${changed && !w.auto ? ` Attacks with this weapon: ${e.dice} ${e.dice === 1 ? "die" : "dice"} per weapon at ${e.acc}+, damage ${e.dmg}${e.lucky ? ", 1 Lucky re-roll" : ""}${e.six ? ", 6s add dice" : ""}.` : ""}</p>` : ""}
+      <p class="hint">Blue skills are always on. Tick the Orange and Red skills ${w.survivor} has unlocked.${changed && !w.auto ? ` With this weapon: ${e.dice} ${e.dice === 1 ? "die" : "dice"} at ${e.acc}+, Damage ${e.dmg}${e.lucky ? ", 1 Lucky re-roll" : ""}${e.six ? ", each 6 adds a die" : ""}.` : ""}</p>` : `<p class="hint">Add a Survivor to count their combat skills.</p>`}
     </div>
-    <div class="equipment">
-      <div class="section-head"><span class="section-title">Equipment</span>
-        <button type="button" class="card-btn" id="${side}-equip-card" aria-expanded="${!!state.showEquipCards}">${state.showEquipCards ? "Hide equipment cards" : "Show equipment cards"}</button></div>
+    <div class="block">
+      <div class="block-head"><span class="block-title">Re-roll cards</span>
+        <button type="button" class="card-btn" id="${side}-equip-card" aria-expanded="${!!state.showEquipCards}">${state.showEquipCards ? "Hide cards" : "Show cards"}</button></div>
       ${state.showEquipCards ? `<div class="card-row">${["Bullets", "Shells"].map(a => `<img class="card" src="cards/plenty-of-${a.toLowerCase()}.webp" alt="Plenty of ${a} card" width="169" height="260">`).join("")}</div>` : ""}
       <div class="plenty">${["Bullets", "Shells"].map(a => `
         <label for="${side}-${a.toLowerCase()}" class="${w.ammo === a ? "" : "off"}">Plenty of ${a}
-          <input type="number" id="${side}-${a.toLowerCase()}" min="0" max="6" value="${w[a.toLowerCase()]}">
+          <span class="numwrap"><input type="number" id="${side}-${a.toLowerCase()}" min="0" max="6" value="${w[a.toLowerCase()]}">${steps(`${side}-${a.toLowerCase()}`, w[a.toLowerCase()], 0, 6, `Plenty of ${a}`)}</span>
         </label>`).join("")}
       </div>
-      <p class="hint">${w.auto ? "A Molotov doesn't roll, so these don't change it." : w.ammo ? `Each Plenty of ${w.ammo} re-rolls the whole attack once if it falls short.${plentyFor(w) ? ` At least 1 hit goes from ${fmt(atLeast(n, p, 1))} to ${fmt(chance(w, 1))}.` : ""}` : "This weapon uses neither Bullets nor Shells, so these cards don't change it."}</p>
+      <p class="hint">${w.auto ? "A Molotov doesn't roll, so these don't change it." : w.ammo ? `Each Plenty of ${w.ammo} re-rolls the whole attack once when it comes up short.${plentyFor(w) ? ` At least 1 hit goes from ${fmt(atLeast(n, p, 1))} to ${fmt(chance(w, 1))}.` : ""}` : "This weapon takes neither Bullets nor Shells, so these cards don't change it."}</p>
     </div>
-    <div class="dice"${w.auto ? " hidden" : ""}>${[1, 2, 3, 4, 5, 6].map(f => dieSVG(f, f >= e.acc)).join("")}<span class="dice-note">${e.acc}+ hits · ${fmt(p)} per die</span></div>
-    <div class="summary"${w.auto ? " hidden" : ""}>
-      <div><b>${n}</b>dice rolled</div>
-      <div><b>${(n * p).toFixed(2)}</b>average hits per roll</div>
-      <div><b>${fmt(chance(w, 1))}</b>at least 1 hit</div>
     </div>
     </div>`;
-  el.classList.toggle("open", !!(state.open || {})[side]);
+  el.classList.toggle("open", open);
   const sel = el.querySelector("select");
   sel.addEventListener("change", () => {
     const pr = PRESETS.find(p => p.name === sel.value);
@@ -673,21 +792,21 @@ function renderCompare() {
   const k = state.target, va = chance(A, k), vb = chance(B, k);
   const z = k === 1 ? "1 zombie" : `${k} zombies`;
   let v;
-  if (Math.abs(va - vb) < 1e-9) v = `Against ${z}, both weapons are dead even at ${fmt(va)}.`;
+  if (Math.abs(va - vb) < 1e-9) v = `Facing ${z}, the two weapons are dead even at ${fmt(va)}.`;
   else {
     const [win, ws, wv, lv] = va > vb ? ["a", label("a"), va, vb] : ["b", label("b"), vb, va];
-    v = `Against ${z}, <strong class="${win}">${ws}</strong> is the better pick: ${fmt(wv)} to kill them all in one attack, versus ${fmt(lv)}.`;
+    v = `Facing ${z}, <strong class="${win}">${ws}</strong> kills ${k === 1 ? "it" : "them all"} in one attack ${fmt(wv)} of the time. The other weapon manages ${fmt(lv)}.`;
   }
   const lo = Math.min(eff(A).dmg, eff(B).dmg), hi = Math.max(eff(A).dmg, eff(B).dmg);
   const extra = [hi >= 2 && lo < 2 ? "Brutes" : "", hi >= 3 && lo < 3 ? "Abominations" : ""].filter(Boolean);
-  if (extra.length) v += ` Keep damage in mind: only the damage ${hi} weapon can kill ${extra.join(" and ")}.`;
-  for (const s of ["a", "b"]) if (state[s].auto) v += ` <strong class="${s}">Molotov</strong> is used up after one throw and also eliminates any Survivors in that Zone.`;
+  if (extra.length) v += ` Watch the Damage: only the Damage ${hi} weapon can kill ${extra.join(" and ")}.`;
+  for (const s of ["a", "b"]) if (state[s].auto) v += ` <strong class="${s}">Molotov</strong> is gone after one throw, and it kills any Survivors in that Zone too.`;
   if (A.noisy !== B.noisy) {
     const q = A.noisy ? "b" : "a";
-    v += ` <strong class="${q}">${state[q].preset === "Custom" ? "Weapon " + q.toUpperCase() : state[q].preset}</strong> is quiet, so it won't draw more Zombies.`;
+    v += ` <strong class="${q}">${state[q].preset === "Custom" ? "Weapon " + q.toUpperCase() : state[q].preset}</strong> is quiet, so it won't draw more zombies.`;
   }
   const rel = ["a", "b"].filter(s => state[s].reload).map(s => state[s].preset === "Custom" ? "Weapon " + s.toUpperCase() : state[s].preset);
-  if (rel.length) v += ` ${rel.join(" and ")} need${rel.length === 1 ? "s" : ""} an Action to reload before a second attack in the same round.`;
+  if (rel.length) v += ` ${rel.join(" and ")} need${rel.length === 1 ? "s" : ""} an Action to reload before firing again this round.`;
   document.getElementById("verdict").innerHTML = v;
 }
 
@@ -711,6 +830,15 @@ const barHead = document.querySelector(".bar-head");
 const padForBar = () => { document.body.style.paddingBottom = barHead.offsetHeight + 48 + "px"; };
 if ("ResizeObserver" in window) new ResizeObserver(padForBar).observe(barHead);
 padForBar();
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-step]");
+  if (!btn) return;
+  e.preventDefault();
+  const inp = document.getElementById(btn.dataset.for);
+  inp.value = clamp((parseInt(inp.value, 10) || 0) + +btn.dataset.step, +inp.min, +inp.max);
+  inp.dispatchEvent(new Event("change"));
+  document.getElementById(btn.id)?.focus();
+});
 update();
 </script>
 </body>
