@@ -147,6 +147,29 @@ img.card.survivor-card { max-height: 300px; }
 .stat input::-webkit-inner-spin-button, .stat input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .stat input:hover { border-bottom-color: var(--c); }
 .stat.wide { grid-column: span 3; }
+.stat { position: relative; }
+.stat .stat-val { padding-right: 30px; }
+.steps { position: absolute; right: 6px; bottom: 7px; display: grid; gap: 3px; }
+.steps button {
+  width: 26px; height: 20px; padding: 0; display: grid; place-items: center; cursor: pointer;
+  border: 1.5px solid var(--line); border-radius: 2px; background: var(--surface); color: var(--fg);
+}
+.steps button::before { content: ""; width: 7px; height: 7px; border-left: 2.5px solid currentColor; border-top: 2.5px solid currentColor; transform: translateY(2px) rotate(45deg); }
+.steps button.down::before { transform: translateY(-2px) rotate(225deg); }
+.steps button:hover:not(:disabled) { border-color: var(--c); color: var(--c); }
+.steps button:disabled { opacity: 0.35; cursor: default; }
+.numwrap { position: relative; display: block; }
+.numwrap input[type="number"] { padding-right: 40px; -moz-appearance: textfield; }
+.numwrap input::-webkit-inner-spin-button, .numwrap input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.numwrap .steps { top: 50%; bottom: auto; right: 4px; transform: translateY(-50%); gap: 2px; }
+.numwrap .steps button { height: 16px; }
+/* Phones: the stat cells are narrow, so the arrows sit in a row under the number with bigger targets. */
+@media (max-width: 480px) {
+  .stat .stat-val { padding-right: 0; }
+  .stat .steps { position: static; grid-auto-flow: column; justify-content: start; gap: 4px; margin-top: 6px; }
+  .stat .steps button { width: 30px; height: 26px; }
+  .stat .steps .down { order: -1; }
+}
 .stat-val .eff { font-size: 0.5em; color: var(--c); margin-left: 5px; font-weight: 800; }
 .stat.wide .stat-val { font-size: 1.35rem; line-height: 1.15; white-space: normal; padding-top: 6px; }
 
@@ -596,6 +619,8 @@ function dieSVG(face, hit) {
   return `<div class="die${hit ? " hit" : ""}" title="${face}: ${hit ? "hit" : "miss"}">${cells}</div>`;
 }
 
+// Up/down arrows for number boxes, so nobody has to type. They step the input and fire its change handler.
+const steps = (id, v, lo, hi, name) => `<span class="steps"><button type="button" class="up" id="${id}-up" data-step="1" data-for="${id}" aria-label="More ${name}"${v >= hi ? " disabled" : ""}></button><button type="button" class="down" id="${id}-down" data-step="-1" data-for="${id}" aria-label="Less ${name}"${v <= lo ? " disabled" : ""}></button></span>`;
 const digitsW = v => String(v).length * 0.56 + 0.14 + "em";
 function renderWeapon(side) {
   const w = state[side], el = document.getElementById("w" + side);
@@ -631,9 +656,9 @@ function renderWeapon(side) {
     <div class="statline">
       <div class="stat"><span class="stat-label">Range</span><span class="stat-val">${e.range || "—"}</span></div>
       ${w.auto ? `<div class="stat wide"><span class="stat-label">Attack</span><span class="stat-val">No roll. Kills everything in the Zone.</span></div>` : ""}
-      <label class="stat" for="${side}-dice"${w.auto ? " hidden" : ""}><span class="stat-label">Dice</span><span class="stat-val"><input type="number" id="${side}-dice" style="width:${digitsW(w.dice)}" min="1" max="20" value="${w.dice}">${eff1(w.dice, e.dice)}</span></label>
-      <label class="stat" for="${side}-acc"${w.auto ? " hidden" : ""}><span class="stat-label">Accuracy</span><span class="stat-val"><input type="number" id="${side}-acc" style="width:${digitsW(w.acc)}" min="2" max="6" value="${w.acc}"><span class="plus">+</span>${eff1(w.acc, e.acc, "+")}</span></label>
-      <label class="stat" for="${side}-dmg"${w.auto ? " hidden" : ""}><span class="stat-label">Damage</span><span class="stat-val"><input type="number" id="${side}-dmg" style="width:${digitsW(w.dmg)}" min="1" max="5" value="${w.dmg}">${eff1(w.dmg, e.dmg)}</span></label>
+      <label class="stat" for="${side}-dice"${w.auto ? " hidden" : ""}><span class="stat-label">Dice</span><span class="stat-val"><input type="number" id="${side}-dice" style="width:${digitsW(w.dice)}" min="1" max="20" value="${w.dice}">${eff1(w.dice, e.dice)}</span>${steps(`${side}-dice`, w.dice, 1, 20, "dice")}</label>
+      <label class="stat" for="${side}-acc"${w.auto ? " hidden" : ""}><span class="stat-label">Accuracy</span><span class="stat-val"><input type="number" id="${side}-acc" style="width:${digitsW(w.acc)}" min="2" max="6" value="${w.acc}"><span class="plus">+</span>${eff1(w.acc, e.acc, "+")}</span>${steps(`${side}-acc`, w.acc, 2, 6, "accuracy")}</label>
+      <label class="stat" for="${side}-dmg"${w.auto ? " hidden" : ""}><span class="stat-label">Damage</span><span class="stat-val"><input type="number" id="${side}-dmg" style="width:${digitsW(w.dmg)}" min="1" max="5" value="${w.dmg}">${eff1(w.dmg, e.dmg)}</span>${steps(`${side}-dmg`, w.dmg, 1, 5, "damage")}</label>
     </div>
     ${preset && preset.modes.length > 1 ? `<div class="modes" role="group" aria-label="Attack with">${preset.modes.map(m =>
       `<button type="button" id="${side}-mode-${m.kind}" data-mode="${m.kind}" aria-pressed="${w.kind === m.kind}">${KIND_NAMES[m.kind]} · ${m.dice} ${m.dice === 1 ? "die" : "dice"} at ${m.acc}+</button>`).join("")}</div>` : ""}
@@ -676,7 +701,7 @@ function renderWeapon(side) {
       ${state.showEquipCards ? `<div class="card-row">${["Bullets", "Shells"].map(a => `<img class="card" src="cards/plenty-of-${a.toLowerCase()}.webp" alt="Plenty of ${a} card" width="169" height="260">`).join("")}</div>` : ""}
       <div class="plenty">${["Bullets", "Shells"].map(a => `
         <label for="${side}-${a.toLowerCase()}" class="${w.ammo === a ? "" : "off"}">Plenty of ${a}
-          <input type="number" id="${side}-${a.toLowerCase()}" min="0" max="6" value="${w[a.toLowerCase()]}">
+          <span class="numwrap"><input type="number" id="${side}-${a.toLowerCase()}" min="0" max="6" value="${w[a.toLowerCase()]}">${steps(`${side}-${a.toLowerCase()}`, w[a.toLowerCase()], 0, 6, `Plenty of ${a}`)}</span>
         </label>`).join("")}
       </div>
       <p class="hint">${w.auto ? "A Molotov doesn't roll, so these don't change it." : w.ammo ? `Each Plenty of ${w.ammo} re-rolls the whole attack once when it comes up short.${plentyFor(w) ? ` At least 1 hit goes from ${fmt(atLeast(n, p, 1))} to ${fmt(chance(w, 1))}.` : ""}` : "This weapon takes neither Bullets nor Shells, so these cards don't change it."}</p>
@@ -805,6 +830,15 @@ const barHead = document.querySelector(".bar-head");
 const padForBar = () => { document.body.style.paddingBottom = barHead.offsetHeight + 48 + "px"; };
 if ("ResizeObserver" in window) new ResizeObserver(padForBar).observe(barHead);
 padForBar();
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-step]");
+  if (!btn) return;
+  e.preventDefault();
+  const inp = document.getElementById(btn.dataset.for);
+  inp.value = clamp((parseInt(inp.value, 10) || 0) + +btn.dataset.step, +inp.min, +inp.max);
+  inp.dispatchEvent(new Event("change"));
+  document.getElementById(btn.id)?.focus();
+});
 update();
 </script>
 </body>
