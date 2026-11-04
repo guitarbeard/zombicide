@@ -74,10 +74,10 @@ header { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 40
 @media (max-width: 760px) { header { grid-template-columns: 1fr; } }
 h1 { margin: 0; display: flex; align-items: center; gap: clamp(14px, 3vw, 24px); }
 .h1-text { display: grid; gap: 6px; }
-/* The Zombicide card back stands in for the box: a small tilted card beside the wordmark. */
+/* The game box sits beside the wordmark. */
 .game-art {
-  display: block; flex: none; width: auto; height: clamp(104px, 22vw, 168px); aspect-ratio: 312 / 480;
-  border-radius: 8px; box-shadow: 0 3px 12px rgb(0 0 0 / 0.3); transform: rotate(-4deg);
+  display: block; flex: none; height: auto; width: clamp(108px, 24vw, 184px); aspect-ratio: 280 / 274;
+  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.25));
 }
 .kicker {
   font: 700 0.95rem/1 var(--font-label); letter-spacing: 0.22em; text-transform: uppercase; color: var(--a);
@@ -372,7 +372,7 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px s
 
 <div class="wrap">
   <header>
-    <h1><img class="game-art" src="cards/zombicide-card-back.webp" alt="" width="312" height="480"><span class="h1-text"><span class="kicker">Zombicide 2nd Edition</span><span class="wordmark">Weapon<br>Odds</span></span></h1>
+    <h1><img class="game-art" src="zombicide-box.webp" alt="" width="280" height="274"><span class="h1-text"><span class="kicker">Zombicide 2nd Edition</span><span class="wordmark">Weapon<br>Odds</span></span></h1>
     <p class="lead">Set two loadouts side by side and see which one is more likely to clear the Zone in a single attack. Change the zombie count in the bar at the bottom of the screen.</p>
   </header>
 
