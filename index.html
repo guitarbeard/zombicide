@@ -72,7 +72,13 @@ code { font-family: var(--font-mono); font-size: 0.85em; }
 /* Masthead */
 header { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 40px; align-items: end; }
 @media (max-width: 760px) { header { grid-template-columns: 1fr; } }
-h1 { margin: 0; display: grid; gap: 6px; }
+h1 { margin: 0; display: flex; align-items: center; gap: clamp(14px, 3vw, 24px); }
+.h1-text { display: grid; gap: 6px; }
+/* The game box sits beside the wordmark. */
+.game-art {
+  display: block; flex: none; height: auto; width: clamp(108px, 24vw, 184px); aspect-ratio: 280 / 274;
+  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.25));
+}
 .kicker {
   font: 700 0.95rem/1 var(--font-label); letter-spacing: 0.22em; text-transform: uppercase; color: var(--a);
 }
@@ -203,6 +209,12 @@ img.card.survivor-card { max-height: 300px; }
 @media (max-width: 700px) {
   .details-btn { display: block; }
   .weapon:not(.open) .details { display: none; }
+  /* Collapsed on a phone, a sheet is just the weapon name and its one-line summary. */
+  .weapon:not(.open) :is(.band-top, .pills, img.card, .statline, .modes, .dice) { display: none; }
+  .weapon:not(.open) .band { padding-block: 8px 6px; }
+  .weapon:not(.open) .sheet { gap: 12px; padding-block: 12px 14px; }
+  .summary { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 10px; }
+  .summary b { font-size: 1.6rem; }
 }
 .block { display: grid; gap: 10px; border-top: 1px dashed var(--line); padding-top: 14px; }
 .block-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--fg); }
@@ -360,7 +372,7 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px s
 
 <div class="wrap">
   <header>
-    <h1><span class="kicker">Zombicide 2nd Edition</span><span class="wordmark">Weapon<br>Odds</span></h1>
+    <h1><img class="game-art" src="zombicide-box.webp" alt="" width="280" height="274"><span class="h1-text"><span class="kicker">Zombicide 2nd Edition</span><span class="wordmark">Weapon<br>Odds</span></span></h1>
     <p class="lead">Set two loadouts side by side and see which one is more likely to clear the Zone in a single attack. Change the zombie count in the bar at the bottom of the screen.</p>
   </header>
 
@@ -669,7 +681,7 @@ function renderWeapon(side) {
       <div><b>${fmt(chance(w, 1))}</b>at least 1 hit</div>
     </div>
     ${w.auto ? `<p class="auto-note">Discard it to kill every Actor in the target Zone, Survivors included. It kills Abominations too.</p>` : ""}
-    <button type="button" class="details-btn" id="${side}-details" aria-expanded="${open}">${open ? "Close loadout" : "Edit loadout: traits, Survivor, ammo"}</button>
+    <button type="button" class="details-btn" id="${side}-details" aria-expanded="${open}">${open ? "Close loadout" : "Edit dice, traits, Survivor"}</button>
     <div class="details">
     <div class="block">
       <div class="block-head"><span class="block-title">Traits</span></div>
