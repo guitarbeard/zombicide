@@ -86,6 +86,13 @@ h1 { margin: 0; display: flex; align-items: center; gap: clamp(14px, 3vw, 24px);
   font: 900 clamp(3.4rem, 11vw, 6.2rem)/0.82 var(--font-stencil); text-transform: uppercase; letter-spacing: 0.005em;
 }
 .lead { margin: 0; max-width: 46ch; font-size: 1.05rem; padding-bottom: 4px; text-wrap: pretty; }
+.intro { display: grid; gap: 14px; justify-items: start; }
+.reset { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 30px; }
+.reset-btns { display: flex; gap: 8px; }
+.reset .ask { font: 700 0.9rem/1.2 var(--font-label); letter-spacing: 0.04em; }
+.reset .card-btn:disabled { opacity: 0.45; cursor: default; background: none; }
+.reset .card-btn.danger { background: var(--fg); color: var(--surface); border-color: var(--fg); }
+.reset .card-btn.danger:hover { background: var(--a); border-color: var(--a); color: var(--on-c); }
 
 /* Dymo-style label tape */
 .tape {
@@ -373,7 +380,10 @@ select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px s
 <div class="wrap">
   <header>
     <h1><img class="game-art" src="zombicide-box.webp" alt="" width="280" height="274"><span class="h1-text"><span class="kicker">Zombicide 2nd Edition</span><span class="wordmark">Weapon<br>Odds</span></span></h1>
-    <p class="lead">Set two loadouts side by side and see which one is more likely to clear the Zone in a single attack. Change the zombie count in the bar at the bottom of the screen.</p>
+    <div class="intro">
+      <p class="lead">Set two loadouts side by side and see which one is more likely to clear the Zone in a single attack. Change the zombie count in the bar at the bottom of the screen.</p>
+      <div class="reset" id="reset" aria-live="polite"></div>
+    </div>
   </header>
 
   <section class="weapons" aria-label="Loadouts">
@@ -505,6 +515,8 @@ const state = {
   b: { preset: "Nailbat", dice: 2, acc: 3, dmg: 1, dualOn: false },
   target: 2,
 };
+// Kept as text so a reset starts from a fresh copy.
+const DEFAULTS = JSON.stringify(state);
 try { const s = JSON.parse(localStorage.getItem("zw-odds")); if (s && s.a && s.b) Object.assign(state, s); } catch (e) {}
 const CUSTOM_TRAITS = { kind: "M", noisy: false, door: "", ammo: "", dual: false, sniper: false, reload: false, range: "", auto: false };
 
@@ -554,7 +566,7 @@ function eff(w) {
     dualOK, dualOn: w.dualOn && dualOK, range, on,
   };
 }
-for (const w of [state.a, state.b]) {
+function normalize(w) {
   if (w.preset !== "Custom" && !PRESETS.some(p => p.name === w.preset)) w.preset = "Custom";
   const pr = PRESETS.find(p => p.name === w.preset);
   // Saved presets take their current card stats, in case the presets were corrected since.
@@ -565,6 +577,45 @@ for (const w of [state.a, state.b]) {
   delete w.plenty;
   if (!SURVIVORS[w.survivor]) { w.survivor = ""; w.skills = {}; }
 }
+[state.a, state.b].forEach(normalize);
+// Reset puts both loadouts and the zombie count back to how the page first opens. Which cards are
+// showing and whether the Head to head bar is open are left as they are.
+function resetAll() {
+  const d = JSON.parse(DEFAULTS);
+  state.a = d.a; state.b = d.b; state.target = d.target; state.open = {};
+  [state.a, state.b].forEach(normalize);
+  document.getElementById("target").value = state.target;
+}
+// Compares loadouts while ignoring key order and unset values (false, 0, "", empty skills).
+const canon = v => {
+  if (v && typeof v === "object") {
+    const out = {};
+    for (const k of Object.keys(v).sort()) { const c = canon(v[k]); if (c !== undefined) out[k] = c; }
+    return Object.keys(out).length ? out : undefined;
+  }
+  return v === false || v === 0 || v === "" || v == null ? undefined : v;
+};
+const loadoutJSON = (st = state) => JSON.stringify(canon({ a: st.a, b: st.b, target: st.target }));
+let resetAsking = false, defaultJSON = "";
+function renderReset(focusId) {
+  const el = document.getElementById("reset");
+  if (resetAsking) {
+    el.innerHTML = `<span class="ask">Reset both loadouts?</span>
+      <span class="reset-btns"><button type="button" class="card-btn danger" id="reset-yes">Yes, reset</button>
+      <button type="button" class="card-btn" id="reset-no">Cancel</button></span>`;
+  } else {
+    const clean = loadoutJSON() === defaultJSON;
+    el.innerHTML = `<button type="button" class="card-btn" id="reset-ask"${clean ? ` disabled title="Already at the defaults: no Survivors, re-roll cards or edits"` : ""}>Reset to default</button>`;
+  }
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+document.getElementById("reset").addEventListener("click", e => {
+  const id = e.target.closest("button")?.id;
+  if (id === "reset-ask") { resetAsking = true; renderReset("reset-no"); }
+  else if (id === "reset-no") { resetAsking = false; renderReset("reset-ask"); }
+  else if (id === "reset-yes") { resetAsking = false; resetAll(); update(); document.getElementById("reset-ask")?.focus(); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && resetAsking) { resetAsking = false; renderReset("reset-ask"); } });
 function chips(w) {
   const e = eff(w);
   const out = [KIND_NAMES[w.kind], w.noisy ? "Noisy" : "Quiet"];
@@ -824,7 +875,7 @@ function renderCompare() {
 
 function update(focusId) {
   try { localStorage.setItem("zw-odds", JSON.stringify(state)); } catch (e) {}
-  renderWeapon("a"); renderWeapon("b"); renderCompare();
+  renderWeapon("a"); renderWeapon("b"); renderCompare(); renderReset();
   if (focusId) document.getElementById(focusId)?.focus();
 }
 document.getElementById("target").value = state.target;
@@ -851,6 +902,7 @@ document.addEventListener("click", e => {
   inp.dispatchEvent(new Event("change"));
   document.getElementById(btn.id)?.focus();
 });
+{ const d = JSON.parse(DEFAULTS); [d.a, d.b].forEach(normalize); defaultJSON = loadoutJSON(d); }
 update();
 </script>
 </body>
